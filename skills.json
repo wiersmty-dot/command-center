@@ -1,0 +1,144 @@
+[
+  {
+    "group": "Daily",
+    "label": "Morning intel",
+    "skill": "morning",
+    "prompt": "Run my morning brief: today's calendar, anything that needs a decision, and today's training session from the triathlon plan with the week number and phase. Do not try to write any file — nothing is writable here. Print the finished styled page inline in a ```html fenced block instead; the runner saves it into the vault. For the Fraunces headline @font-face, write the literal placeholder token __FRAUNCES_WOFF2__ as the src url — like src: url(__FRAUNCES_WOFF2__) format('woff2') — and do not base64 anything yourself; the runner substitutes the real font bytes. Do not fall back to Georgia. Skip the Playwright screenshot verification: node and Chromium are not installed on this machine, and that check is not a reason to withhold the page. After the page, emit one more fenced block, ```json, matching this shape exactly: {\"decisions\": [{\"title\": \"...\", \"meta\": \"SHORT UPPERCASE QUALIFIER\"}], \"needs\": [{\"title\": \"...\", \"meta\": \"4h\"}], \"email\": {\"total\": 0, \"buckets\": [{\"label\": \"PARTN\", \"count\": 0}, {\"label\": \"LEADS\", \"count\": 0}, {\"label\": \"OPS\", \"count\": 0}, {\"label\": \"NEWS\", \"count\": 0}, {\"label\": \"NOISE\", \"count\": 0}]}} — decisions are the items needing a decision, needs are unanswered items with an age like 4h or 3d, and email counts cover the last 24 hours. This block feeds the dashboard; emit it even if a list is empty.",
+    "ask": false
+  },
+  {
+    "group": "Daily",
+    "label": "Session handoff",
+    "skill": "session-handoff",
+    "prompt": "Use the session-handoff skill. Write a handoff for the work in this vault so the next session starts executing instead of re-deriving.",
+    "ask": false
+  },
+  {
+    "group": "BayCo",
+    "label": "Ad + campaign work",
+    "skill": "bayco-marketing",
+    "prompt": "Use the bayco-marketing skill.",
+    "ask": true,
+    "placeholder": "e.g. write three Facebook ad variants for 20-yard roof tear-off jobs"
+  },
+  {
+    "group": "BayCo",
+    "label": "Build a target list",
+    "skill": "naics-prospecting",
+    "prompt": "Use the naics-prospecting skill.",
+    "ask": true,
+    "placeholder": "e.g. rank NAICS codes for commercial dumpster accounts in Hillsborough County"
+  },
+  {
+    "group": "Plant 440",
+    "label": "ProWood ops",
+    "skill": "prowood-ops",
+    "prompt": "Use the prowood-ops skill.",
+    "ask": true,
+    "placeholder": "e.g. pull last week's charge data and flag any cylinder that ran long"
+  },
+  {
+    "group": "Plant 440",
+    "label": "Promo / walkthrough video",
+    "skill": "promo-video-pipeline",
+    "prompt": "Use the promo-video-pipeline skill.",
+    "ask": true,
+    "placeholder": "e.g. script a two-minute walkthrough of the maintenance dispatch app for the VP"
+  },
+  {
+    "group": "Build",
+    "label": "Source a BOM",
+    "skill": "hardware-bom-sourcing",
+    "prompt": "Use the hardware-bom-sourcing skill.",
+    "ask": true,
+    "placeholder": "e.g. price the parts list for the forklift horn counter node"
+  },
+  {
+    "group": "Build",
+    "label": "ESP32 / sensor node",
+    "skill": "esp32-iot-pipeline",
+    "prompt": "Use the esp32-iot-pipeline skill.",
+    "ask": true,
+    "placeholder": "e.g. the KY-037 reads zero on the Heltec board, walk me through it"
+  },
+  {
+    "group": "Build",
+    "label": "Fusion 360",
+    "skill": "fusion-360-bridge",
+    "prompt": "Use the fusion-360-bridge skill.",
+    "ask": true,
+    "placeholder": "e.g. check the bridge is registered, then model the caddy housing lid"
+  },
+  {
+    "group": "Build",
+    "label": "B3 Looper",
+    "skill": "b3-looper",
+    "prompt": "Use the b3-looper skill.",
+    "ask": true,
+    "placeholder": "e.g. review the GPS + camera wiring against the current audio architecture"
+  },
+  {
+    "group": "Money",
+    "label": "Underwrite a deal",
+    "skill": "deal-underwriter",
+    "prompt": "Use the deal-underwriter skill.",
+    "ask": true,
+    "placeholder": "e.g. run the numbers on a $210k duplex in Wimauma, Section 8 rents"
+  },
+  {
+    "group": "Money",
+    "label": "Research a stock",
+    "skill": "equity-research",
+    "prompt": "Use the equity-research skill.",
+    "ask": true,
+    "placeholder": "e.g. full valuation on UFPI including the bear case"
+  },
+  {
+    "group": "Money",
+    "label": "Stress-test an idea",
+    "skill": "business-stress-test",
+    "prompt": "Use the business-stress-test skill.",
+    "ask": true,
+    "placeholder": "e.g. franchising BayCo into Sarasota next spring"
+  },
+  {
+    "group": "Venture Studio",
+    "label": "Portfolio review",
+    "skill": "venture-chief-of-staff",
+    "prompt": "Use the venture-chief-of-staff skill.",
+    "ask": true,
+    "placeholder": "e.g. prepare this week's advance, hold, and kill recommendations"
+  },
+  {
+    "group": "Venture Studio",
+    "label": "Scout a thesis",
+    "skill": "venture-thesis-scout",
+    "prompt": "Use the venture-thesis-scout skill.",
+    "ask": true,
+    "placeholder": "e.g. find expensive recurring workflows in industrial maintenance"
+  },
+  {
+    "group": "Venture Studio",
+    "label": "Verify economics",
+    "skill": "venture-diligence-economics",
+    "prompt": "Use the venture-diligence-economics skill.",
+    "ask": true,
+    "placeholder": "e.g. qualify OPP-001 with tariff and proof requirements"
+  },
+  {
+    "group": "Venture Studio",
+    "label": "Research leads",
+    "skill": "venture-growth-lead-intel",
+    "prompt": "Use the venture-growth-lead-intel skill.",
+    "ask": true,
+    "placeholder": "e.g. draft a 15-account ICP list for OPP-001"
+  },
+  {
+    "group": "Venture Studio",
+    "label": "Prototype a workflow",
+    "skill": "venture-product-ai-lab",
+    "prompt": "Use the venture-product-ai-lab skill.",
+    "ask": true,
+    "placeholder": "e.g. design the smallest test for a validated handoff"
+  }
+]

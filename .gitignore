@@ -1,0 +1,24 @@
+# --- secrets -----------------------------------------------------------------
+# config.json holds the Supabase secret key. It must never be committed; the
+# README documents the shape so a fresh clone knows what to create.
+config.json
+config.json.*
+
+# --- runtime state -----------------------------------------------------------
+# Rewritten by the server as it runs. Derived, high-churn, and not worth a
+# diff each time a job streams a line.
+runs.jsonl
+orbit-state.json
+orchestrations.json
+workspace-state.json
+
+# --- hand-rolled backups -----------------------------------------------------
+# server.py.bak-phase5-165103 and friends. This repository is what replaces
+# them; keeping both would just be two histories disagreeing.
+*.bak
+*.bak-*
+
+# --- caches ------------------------------------------------------------------
+__pycache__/
+*.pyc
+.DS_Store

@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;padding:0;background:#e9edf2}
+*{box-sizing:border-box}
+a{color:#e0521f;text-decoration:none}
+a:hover{color:#b53d13}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(30,45,65,.18);border-radius:8px}
+@keyframes hfPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(1.45)}}
+@keyframes hfSpinSlow{to{transform:rotate(360deg)}}
+@keyframes hfSpinRev{to{transform:rotate(-360deg)}}
+@keyframes hfFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@keyframes hfSweep{0%{transform:translateX(-110%)}100%{transform:translateX(340%)}}
+@keyframes hfGlow{0%,100%{opacity:.5}50%{opacity:1}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;padding:30px 34px 26px;background:radial-gradient(900px 500px at 50% -8%,#ffffff,transparent 62%),linear-gradient(168deg,#eef1f6 0%,#e4e9f0 58%,#dde3eb 100%);color:#1b2531;font:400 14px/1.45 'Sora',system-ui,sans-serif">
+
+  <div style="max-width:1520px;margin:0 auto;display:flex;flex-direction:column;gap:16px">
+
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:28px;height:28px;border-radius:9px;background:linear-gradient(145deg,#f4652a,#dd3c14);box-shadow:0 6px 16px rgba(221,60,20,.32);display:grid;place-items:center">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 1.8 14 14H2L8 1.8Z" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"></path></svg>
+        </div>
+        <span style="font:700 13px/1 'Sora',sans-serif;letter-spacing:.16em;color:#33414f">HYPERFRAME</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:7px;padding:5px 11px;border-radius:8px;background:#fff;box-shadow:0 1px 3px rgba(20,35,60,.08)">
+        <div style="width:6px;height:6px;border-radius:50%;background:#1fa971;box-shadow:0 0 8px rgba(31,169,113,.7)"></div>
+        <span style="font:600 10.5px/1 'JetBrains Mono',monospace;letter-spacing:.1em;color:#33414f">PRODUCTION</span>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:9px">
+        <div style="height:34px;padding:0 14px;display:flex;align-items:center;gap:8px;border-radius:10px;background:#fff;box-shadow:0 1px 3px rgba(20,35,60,.08);font:500 12.5px/1 'Sora',sans-serif;color:#4a5a6b;cursor:pointer" style-hover="color:#1b2531">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="6.2" cy="6.2" r="4.4" stroke="currentColor" stroke-width="1.3"></circle><path d="M9.6 9.6 12.5 12.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"></path></svg>
+          Search
+        </div>
+        <div style="height:34px;padding:0 15px;display:flex;align-items:center;gap:8px;border-radius:10px;background:linear-gradient(135deg,#f4652a,#dd3c14);box-shadow:0 6px 18px rgba(221,60,20,.3);font:600 12.5px/1 'Sora',sans-serif;color:#fff;cursor:pointer" style-hover="filter:brightness(1.07)">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="#fff" stroke-width="1.6" stroke-linecap="round"></path></svg>
+          New agent
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;padding:12px 0 4px">
+      <div style="font:800 clamp(30px,3.6vw,50px)/1.05 'Sora',sans-serif;letter-spacing:-.03em;color:#111c28">One console. <span style="color:#dd3c14">Every agent.</span></div>
+      <div style="margin-top:10px;font:400 14.5px/1.5 'Sora',sans-serif;color:#6b7a8b">Build, edit and monitor your agent fleet. Live traces, cost and guardrails in one view.</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;min-width:900px">
+      <div style="padding:13px 15px;border-radius:14px;background:#fff;box-shadow:0 2px 6px rgba(20,35,60,.07)">
+        <div style="display:flex;align-items:center;gap:8px"><div style="width:20px;height:20px;border-radius:6px;background:rgba(221,60,20,.10);display:grid;place-items:center"><div style="width:6px;height:6px;border-radius:50%;background:#dd3c14;animation:hfPulse 1.8s ease-in-out infinite"></div></div><span style="font:600 9.5px/1 'Sora',sans-serif;letter-spacing:.13em;text-transform:uppercase;color:#8593a4">Active agents</span></div>
+        <div style="margin-top:9px;font:700 24px/1 'Sora',sans-serif;letter-spacing:-.02em">14</div>
+        <svg width="100%" height="24" viewBox="0 0 120 24" preserveAspectRatio="none" fill="none" style="margin-top:7px;display:block"><polyline points="{{ kpiSpark }}" stroke="#dd3c14" stroke-width="1.6" fill="none"></polyline></svg>
+      </div>
+      <div style="padding:13px 15px;border-radius:14px;background:#fff;box-shadow:0 2px 6px rgba(20,35,60,.07)">
+        <div style="font:600 9.5px/1 'Sora',sans-serif;letter-spacing:.13em;text-transform:uppercase;color:#8593a4">Runs today</div>
+        <div style="margin-top:9px;font:700 24px/1 'Sora',sans-serif;letter-spacing:-.02em">{{ runsToday }}</div>
+        <div style="margin-top:8px;font:500 11px/1 'Sora',sans-serif;color:#1fa971">+23.6% vs yesterday</div>
+      </div>
+      <div style="padding:13px 15px;border-radius:14px;background:#fff;box-shadow:0 2px 6px rgba(20,35,60,.07)">
+        <div style="font:600 9.5px/1 'Sora',sans-serif;letter-spacing:.13em;text-transform:uppercase;color:#8593a4">Concurrent capacity</div>
+        <div style="margin-top:9px;font:700 24px/1 'Sora',sans-serif;letter-spacing:-.02em">1,000+</div>
+        <div style="margin-top:8px;font:400 11px/1 'Sora',sans-serif;color:#8593a4">{{ activeRuns }} running now</div>
+      </div>
+      <div style="padding:13px 15px;border-radius:14px;background:#fff;box-shadow:0 2px 6px rgba(20,35,60,.07)">
+        <div style="font:600 9.5px/1 'Sora',sans-serif;letter-spacing:.13em;text-transform:uppercase;color:#8593a4">Tool calls / min</div>
+        <div style="margin-top:9px;font:700 24px/1 'Sora',sans-serif;letter-spacing:-.02em">{{ toolRate }}</div>
+        <div style="margin-top:8px;font:400 11px/1 'Sora',sans-serif;color:#8593a4">across 9 integrations</div>
+      </div>
+      <div style="padding:13px 15px;border-radius:14px;background:#fff;box-shadow:0 2px 6px rgba(20,35,60,.07)">
+        <div style="font:600 9.5px/1 'Sora',sans-serif;letter-spacing:.13em;text-transform:uppercase;color:#8593a4">Success rate</div>
+        <div style="margin-top:9px;font:700 24px/1 'Sora',sans-serif;letter-spacing:-.02em">{{ successRate }}%</div>
+        <div style="margin-top:8px;font:400 11px/1 'Sora',sans-serif;color:#8593a4">50 evals green</div>
+      </div>
+      <div style="padding:13px 15px;border-radius:14px;background:linear-gradient(150deg,#232e3c,#151d27);box-shadow:0 8px 22px rgba(15,25,40,.22)">
+        <div style="font:600 9.5px/1 'Sora',sans-serif;letter-spacing:.13em;text-transform:uppercase;color:#9aa9ba">Spend today</div>
+        <div style="margin-top:9px;font:700 24px/1 'Sora',sans-serif;letter-spacing:-.02em;color:#fff">${{ spendToday }}</div>
+        <div style="margin-top:8px;font:400 11px/1 'Sora',sans-serif;color:#f4956e">62% of monthly budget</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:296px minmax(0,1fr) 300px;gap:14px;align-items:start;min-width:1420px">
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="padding:16px;border-radius:16px;background:#fff;box-shadow:0 2px 8px rgba(20,35,60,.08)">
+          <div style="display:flex;align-items:baseline;gap:8px">
+            <div style="font:600 11.5px/1 'Sora',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#33414f">Live agent load</div>
+          </div>
+          <div style="margin-top:5px;font:400 11px/1.4 'Sora',sans-serif;color:#8593a4">Fourteen agents. One orchestrator.</div>
+          <div style="margin-top:13px;display:flex;flex-direction:column;gap:10px">
+            <sc-for list="{{ loadRows }}" as="r" hint-placeholder-count="7">
+              <div style="display:grid;grid-template-columns:minmax(0,1fr) 66px 34px;gap:9px;align-items:center">
+                <div style="min-width:0">
+                  <div style="font:500 12px/1.2 'Sora',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</div>
+                  <div style="margin-top:3px;font:400 9.5px/1 'JetBrains Mono',monospace;color:#94a2b2">{{ r.sub }}</div>
+                </div>
+                <svg width="66" height="22" viewBox="0 0 66 22" fill="none"><polyline points="{{ r.spark }}" stroke="{{ r.color }}" stroke-width="1.5" fill="none" stroke-linejoin="round"></polyline></svg>
+                <div style="text-align:right;font:600 13px/1 'Sora',sans-serif">{{ r.val }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top:14px;padding-top:13px;border-top:1px solid rgba(20,35,60,.08);display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div><div style="font:400 9.5px/1 'Sora',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#94a2b2">Deployed</div><div style="margin-top:6px;font:700 18px/1 'Sora',sans-serif">19</div></div>
+            <div><div style="font:400 9.5px/1 'Sora',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#94a2b2">Runs live</div><div style="margin-top:6px;font:700 18px/1 'Sora',sans-serif;color:#dd3c14">{{ activeRuns }}</div></div>
+          </div>
+        </div>
+
+        <div style="padding:16px;border-radius:16px;background:#fff;box-shadow:0 2px 8px rgba(20,35,60,.08)">
+          <div style="font:600 11.5px/1 'Sora',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#33414f">Work mix</div>
+          <div style="margin-top:14px;display:flex;align-items:center;gap:16px">
+            <div style="width:96px;height:96px;flex:none;border-radius:50%;background:conic-gradient(#dd3c14 0 38%,#f4952a 38% 66%,#3f597a 66% 81%,#8fa4bd 81% 91%,#c9d4e0 91% 100%);display:grid;place-items:center">
+              <div style="width:62px;height:62px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:inset 0 1px 4px rgba(20,35,60,.1)">
+                <div style="text-align:center"><div style="font:700 15px/1 'Sora',sans-serif">8.4k</div><div style="margin-top:3px;font:400 8.5px/1 'Sora',sans-serif;color:#94a2b2">runs</div></div>
+              </div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:7px">
+              <div style="display:flex;align-items:center;gap:8px;font:400 11px/1 'Sora',sans-serif"><span style="width:8px;height:8px;border-radius:3px;background:#dd3c14"></span><span style="flex:1;color:#4a5a6b">Lead + CRM</span><span style="font-weight:600">38%</span></div>
+              <div style="display:flex;align-items:center;gap:8px;font:400 11px/1 'Sora',sans-serif"><span style="width:8px;height:8px;border-radius:3px;background:#f4952a"></span><span style="flex:1;color:#4a5a6b">Support triage</span><span style="font-weight:600">28%</span></div>
+              <div style="display:flex;align-items:center;gap:8px;font:400 11px/1 'Sora',sans-serif"><span style="width:8px;height:8px;border-radius:3px;background:#3f597a"></span><span style="flex:1;color:#4a5a6b">Documents</span><span style="font-weight:600">15%</span></div>
+              <div style="display:flex;align-items:center;gap:8px;font:400 11px/1 'Sora',sans-serif"><span style="width:8px;height:8px;border-radius:3px;background:#8fa4bd"></span><span style="flex:1;color:#4a5a6b">Finance</span><span style="font-weight:600">10%</span></div>
+              <div style="display:flex;align-items:center;gap:8px;font:400 11px/1 'Sora',sans-serif"><span style="width:8px;height:8px;border-radius:3px;background:#c9d4e0"></span><span style="flex:1;color:#4a5a6b">Other</span><span style="font-weight:600">9%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding:16px;border-radius:16px;background:#fff;box-shadow:0 2px 8px rgba(20,35,60,.08)">
+          <div style="font:600 11.5px/1 'Sora',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#33414f">Outcome distribution</div>
+          <div style="margin-top:14px;display:flex;align-items:center;gap:16px">
+            <div style="width:88px;height:88px;flex:none;border-radius:50%;background:conic-gradient(#1fa971 0 94%,#f4952a 94% 98%,#dd3c14 98% 100%);display:grid;place-items:center">
+              <div style="width:60px;height:60px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:inset 0 1px 4px rgba(20,35,60,.1)">
+                <div style="text-align:center"><div style="font:700 16px/1 'Sora',sans-serif;color:#1fa971">94%</div><div style="margin-top:3px;font:400 8.5px/1 'Sora',sans-serif;color:#94a2b2">clean</div></div>
+              </div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;align-items:center;gap:8px;font:400 11px/1 'Sora',sans-serif"><span style="width:8px;height:8px;border-radius:3px;background:#1fa971"></span><span style="flex:1;color:#4a5a6b">Completed</span><span style="font-weight:600">94%</span></div>
+              <div style="display:flex;align-items:center;gap:8px;font:400 11px/1 'Sora',sans-serif"><span style="width:8px;height:8px;border-radius:3px;background:#f4952a"></span><span style="flex:1;color:#4a5a6b">Human handoff</span><span style="font-weight:600">4%</span></div>
+              <div style="display:flex;align-items:center;gap:8px;font:400 11px/1 'Sora',sans-serif"><span style="width:8px;height:8px;border-radius:3px;background:#dd3c14"></span><span style="flex:1;color:#4a5a6b">Failed</span><span style="font-weight:600">2%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+
+        <div style="position:relative;height:560px;border-radius:18px;overflow:hidden;background:radial-gradient(520px 420px at 50% 48%,#ffffff,#eef2f7 62%,#e3e9f1 100%);box-shadow:0 3px 14px rgba(20,35,60,.10)">
+          <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(30,50,80,.09) 1px,transparent 1px);background-size:24px 24px"></div>
+
+          <div style="position:absolute;top:16px;left:0;right:0;text-align:center">
+            <div style="display:inline-flex;align-items:center;gap:9px;padding:6px 14px;border-radius:20px;background:rgba(255,255,255,.86);box-shadow:0 1px 4px rgba(20,35,60,.1)">
+              <div style="width:5px;height:5px;border-radius:50%;background:#dd3c14;animation:hfPulse 1.6s ease-in-out infinite"></div>
+              <span style="font:600 10px/1 'JetBrains Mono',monospace;letter-spacing:.18em;color:#4a5a6b">ORCHESTRATION LAYER</span>
+            </div>
+            <div style="margin-top:9px;font:400 11.5px/1 'Sora',sans-serif;color:#8593a4">Routing · planning · tool execution</div>
+          </div>
+
+          <svg style="position:absolute;left:50%;top:50%;width:452px;height:452px;margin:-226px 0 0 -226px" viewBox="0 0 520 520" fill="none">
+            <g stroke="rgba(63,89,122,.20)" stroke-width="1">
+              <circle cx="260" cy="260" r="118"></circle>
+              <circle cx="260" cy="260" r="164"></circle>
+              <circle cx="260" cy="260" r="212"></circle>
+            </g>
+            <g stroke="rgba(221,60,20,.30)" stroke-width="1.2" stroke-dasharray="3 7" style="animation:hfSpinSlow 60s linear infinite;transform-origin:260px 260px">
+              <circle cx="260" cy="260" r="188"></circle>
+            </g>
+            <g style="animation:hfSpinRev 90s linear infinite;transform-origin:260px 260px">
+              <g stroke="rgba(63,89,122,.22)" stroke-width="1">
+                <path d="M260 260 L260 48"></path><path d="M260 260 L410 110"></path><path d="M260 260 L472 260"></path><path d="M260 260 L410 410"></path><path d="M260 260 L260 472"></path><path d="M260 260 L110 410"></path><path d="M260 260 L48 260"></path><path d="M260 260 L110 110"></path>
+              </g>
+            </g>
+            <circle cx="260" cy="260" r="150" stroke="url(#hfArc)" stroke-width="3" stroke-linecap="round" stroke-dasharray="640 300" style="animation:hfSpinSlow 14s linear infinite;transform-origin:260px 260px"></circle>
+            <defs><linearGradient id="hfArc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4952a"></stop><stop offset="1" stop-color="#dd3c14"></stop></linearGradient></defs>
+          </svg>
+
+          <div style="position:absolute;left:50%;top:50%;width:168px;height:168px;margin:-84px 0 0 -84px;border-radius:50%;background:linear-gradient(155deg,#242f3d,#131a24);box-shadow:0 18px 46px rgba(15,25,40,.34),0 0 0 10px rgba(255,255,255,.55);display:grid;place-items:center">
+            <div style="text-align:center">
+              <div style="font:700 20px/1 'Sora',sans-serif;letter-spacing:.02em;color:#fff">HF CORE</div>
+              <div style="margin-top:7px;font:500 9px/1 'JetBrains Mono',monospace;letter-spacing:.22em;color:#f4956e">ROUTER v4</div>
+              <div style="margin-top:11px;display:flex;align-items:center;justify-content:center;gap:6px">
+                <div style="width:4px;height:4px;border-radius:50%;background:#f4952a;animation:hfGlow 1.4s ease-in-out infinite"></div>
+                <div style="width:4px;height:4px;border-radius:50%;background:#dd3c14;animation:hfGlow 1.4s .2s ease-in-out infinite"></div>
+                <div style="width:4px;height:4px;border-radius:50%;background:#f4952a;animation:hfGlow 1.4s .4s ease-in-out infinite"></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="position:absolute;left:14px;top:74px;bottom:56px;width:164px;display:flex;flex-direction:column;gap:7px;overflow:hidden">
+            <sc-for list="{{ leftChips }}" as="c" hint-placeholder-count="8">
+              <div style="display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:11px;background:rgba(255,255,255,.92);box-shadow:0 1px 4px rgba(20,35,60,.09);animation:hfFade .3s ease">
+                <div style="width:24px;height:24px;flex:none;border-radius:8px;background:rgba(63,89,122,.10);display:grid;place-items:center;font:600 9px/1 'JetBrains Mono',monospace;color:#3f597a">{{ c.abbr }}</div>
+                <div style="min-width:0;flex:1">
+                  <div style="font:500 11px/1.2 'Sora',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.name }}</div>
+                  <div style="margin-top:2px;font:400 9px/1 'JetBrains Mono',monospace;color:#94a2b2">{{ c.step }}</div>
+                </div>
+                <div style="font:600 9px/1 'JetBrains Mono',monospace;color:{{ c.color }}">{{ c.state }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="position:absolute;right:14px;top:74px;bottom:56px;width:164px;display:flex;flex-direction:column;gap:7px;overflow:hidden">
+            <sc-for list="{{ rightChips }}" as="c" hint-placeholder-count="8">
+              <div style="display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:11px;background:rgba(255,255,255,.92);box-shadow:0 1px 4px rgba(20,35,60,.09);animation:hfFade .3s ease">
+                <div style="width:24px;height:24px;flex:none;border-radius:8px;background:rgba(221,60,20,.09);display:grid;place-items:center;font:600 9px/1 'JetBrains Mono',monospace;color:#c2401a">{{ c.abbr }}</div>
+                <div style="min-width:0;flex:1">
+                  <div style="font:500 11px/1.2 'Sora',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.name }}</div>
+                  <div style="margin-top:2px;font:400 9px/1 'JetBrains Mono',monospace;color:#94a2b2">{{ c.step }}</div>
+                </div>
+                <div style="font:600 9px/1 'JetBrains Mono',monospace;color:{{ c.color }}">{{ c.state }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="position:absolute;left:18px;bottom:16px;padding:6px 12px;border-radius:10px;background:rgba(255,255,255,.9);box-shadow:0 1px 4px rgba(20,35,60,.09);font:500 10px/1 'JetBrains Mono',monospace;color:#4a5a6b">+{{ queueLeft }} queued</div>
+          <div style="position:absolute;right:18px;bottom:16px;padding:6px 12px;border-radius:10px;background:rgba(255,255,255,.9);box-shadow:0 1px 4px rgba(20,35,60,.09);font:500 10px/1 'JetBrains Mono',monospace;color:#4a5a6b">+{{ queueRight }} queued</div>
+        </div>
+
+        <div style="padding:16px 18px;border-radius:16px;background:#fff;box-shadow:0 2px 8px rgba(20,35,60,.08)">
+          <div style="display:flex;align-items:baseline;gap:10px">
+            <div style="font:600 11.5px/1 'Sora',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#33414f">Data streams</div>
+            <div style="font:400 11px/1 'Sora',sans-serif;color:#8593a4">Tokens, traces and tool calls in real time</div>
+          </div>
+          <svg width="100%" height="104" viewBox="0 0 900 104" preserveAspectRatio="none" fill="none" style="margin-top:12px;display:block">
+            <path d="{{ waveFill }}" fill="url(#hfWave)"></path>
+            <path d="{{ wave1 }}" stroke="#dd3c14" stroke-width="1.8" fill="none"></path>
+            <path d="{{ wave2 }}" stroke="#f4952a" stroke-width="1.5" fill="none"></path>
+            <path d="{{ wave3 }}" stroke="rgba(63,89,122,.55)" stroke-width="1.3" fill="none"></path>
+            <defs><linearGradient id="hfWave" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(221,60,20,.20)"></stop><stop offset="1" stop-color="rgba(221,60,20,0)"></stop></linearGradient></defs>
+          </svg>
+          <div style="margin-top:12px;padding-top:13px;border-top:1px solid rgba(20,35,60,.08);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px">
+            <div><div style="font:400 9.5px/1 'Sora',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#94a2b2">Tokens / sec</div><div style="margin-top:7px;font:700 19px/1 'Sora',sans-serif">{{ tokensSec }}</div></div>
+            <div><div style="font:400 9.5px/1 'Sora',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#94a2b2">Traces open</div><div style="margin-top:7px;font:700 19px/1 'Sora',sans-serif">{{ tracesOpen }}</div></div>
+            <div><div style="font:400 9.5px/1 'Sora',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#94a2b2">Steps processed</div><div style="margin-top:7px;font:700 19px/1 'Sora',sans-serif">3.7M</div></div>
+            <div><div style="font:400 9.5px/1 'Sora',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#94a2b2">Error rate</div><div style="margin-top:7px;font:700 19px/1 'Sora',sans-serif;color:#dd3c14">0.42%</div></div>
+          </div>
+        </div>
+
+        <div style="padding:16px 18px;border-radius:16px;background:#fff;box-shadow:0 2px 8px rgba(20,35,60,.08)">
+          <div style="display:flex;align-items:baseline;gap:10px">
+            <div style="font:600 11.5px/1 'Sora',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#33414f">Live trace</div>
+            <div style="font:400 11px/1 'JetBrains Mono',monospace;color:#8593a4">run_8f21c · Lead Qualifier</div>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:7px"><div style="width:5px;height:5px;border-radius:50%;background:#1fa971;animation:hfPulse 1.5s ease-in-out infinite"></div><span style="font:500 10px/1 'JetBrains Mono',monospace;color:#4a5a6b">streaming</span></div>
+          </div>
+          <div style="margin-top:13px;max-height:158px;overflow:auto;display:flex;flex-direction:column;gap:5px">
+            <sc-for list="{{ logs }}" as="l" hint-placeholder-count="6">
+              <div style="display:grid;grid-template-columns:64px 50px minmax(0,1fr);gap:10px;animation:hfFade .25s ease">
+                <span style="font:400 10.5px/1.5 'JetBrains Mono',monospace;color:#a4b1c0">{{ l.t }}</span>
+                <span style="font:600 9.5px/1.6 'JetBrains Mono',monospace;letter-spacing:.06em;color:{{ l.color }}">{{ l.lvl }}</span>
+                <span style="font:400 11px/1.5 'JetBrains Mono',monospace;color:#43535f;word-break:break-word">{{ l.msg }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="padding:16px;border-radius:16px;background:linear-gradient(150deg,#232e3c,#141c26);box-shadow:0 10px 26px rgba(15,25,40,.24)">
+          <div style="display:flex;align-items:center"><div style="font:600 11.5px/1 'Sora',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#fff">Real-time insights</div><div style="margin-left:auto;font:400 10px/1 'JetBrains Mono',monospace;color:#8496aa">24h</div></div>
+          <div style="margin-top:5px;font:400 10.5px/1.4 'Sora',sans-serif;color:#8496aa">Performance across the whole fleet</div>
+          <svg width="100%" height="74" viewBox="0 0 260 74" preserveAspectRatio="none" fill="none" style="margin-top:12px;display:block">
+            <polyline points="{{ insightSpark }}" stroke="#f4952a" stroke-width="1.8" fill="none"></polyline>
+          </svg>
+          <div style="margin-top:13px;padding-top:13px;border-top:1px solid rgba(255,255,255,.10);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px">
+            <div><div style="font:400 8.5px/1.3 'Sora',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8496aa">Task success</div><div style="margin-top:7px;font:700 17px/1 'Sora',sans-serif;color:#fff">{{ successRate }}%</div><div style="margin-top:5px;font:500 9.5px/1 'Sora',sans-serif;color:#5fd39f">+1.4</div></div>
+            <div><div style="font:400 8.5px/1.3 'Sora',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8496aa">Autonomy</div><div style="margin-top:7px;font:700 17px/1 'Sora',sans-serif;color:#fff">91%</div><div style="margin-top:5px;font:500 9.5px/1 'Sora',sans-serif;color:#5fd39f">+8.7</div></div>
+            <div><div style="font:400 8.5px/1.3 'Sora',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8496aa">p95 latency</div><div style="margin-top:7px;font:700 17px/1 'Sora',sans-serif;color:#fff">{{ p95 }}s</div><div style="margin-top:5px;font:500 9.5px/1 'Sora',sans-serif;color:#f4956e">+0.3</div></div>
+          </div>
+        </div>
+
+        <div style="padding:16px;border-radius:16px;background:#fff;box-shadow:0 2px 8px rgba(20,35,60,.08)">
+          <div style="font:600 11.5px/1 'Sora',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#33414f">Top task types</div>
+          <div style="margin-top:13px;display:flex;flex-direction:column;gap:11px">
+            <sc-for list="{{ intents }}" as="i" hint-placeholder-count="6">
+              <div>
+                <div style="display:flex;justify-content:space-between;font:400 11.5px/1 'Sora',sans-serif;color:#43535f"><span>{{ i.name }}</span><span style="font-weight:600">{{ i.pct }}%</span></div>
+                <div style="margin-top:6px;height:5px;border-radius:5px;background:rgba(30,50,80,.08)"><div style="height:100%;border-radius:5px;background:{{ i.color }};width:{{ i.pct }}%"></div></div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="padding:16px;border-radius:16px;background:#fff;box-shadow:0 2px 8px rgba(20,35,60,.08)">
+          <div style="font:600 11.5px/1 'Sora',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#33414f">Capabilities enabled</div>
+          <div style="margin-top:13px;display:flex;flex-direction:column;gap:9px">
+            <div style="display:flex;align-items:center;gap:9px;font:400 11.5px/1 'Sora',sans-serif;color:#43535f"><span style="width:18px;height:18px;border-radius:6px;background:rgba(221,60,20,.09);display:grid;place-items:center"><span style="width:5px;height:5px;border-radius:50%;background:#dd3c14"></span></span>Multi-step planning</div>
+            <div style="display:flex;align-items:center;gap:9px;font:400 11.5px/1 'Sora',sans-serif;color:#43535f"><span style="width:18px;height:18px;border-radius:6px;background:rgba(221,60,20,.09);display:grid;place-items:center"><span style="width:5px;height:5px;border-radius:50%;background:#dd3c14"></span></span>Tool calling · 9 connected</div>
+            <div style="display:flex;align-items:center;gap:9px;font:400 11.5px/1 'Sora',sans-serif;color:#43535f"><span style="width:18px;height:18px;border-radius:6px;background:rgba(221,60,20,.09);display:grid;place-items:center"><span style="width:5px;height:5px;border-radius:50%;background:#dd3c14"></span></span>Retrieval over 1.2M docs</div>
+            <div style="display:flex;align-items:center;gap:9px;font:400 11.5px/1 'Sora',sans-serif;color:#43535f"><span style="width:18px;height:18px;border-radius:6px;background:rgba(221,60,20,.09);display:grid;place-items:center"><span style="width:5px;height:5px;border-radius:50%;background:#dd3c14"></span></span>Human-in-the-loop approvals</div>
+            <div style="display:flex;align-items:center;gap:9px;font:400 11.5px/1 'Sora',sans-serif;color:#43535f"><span style="width:18px;height:18px;border-radius:6px;background:rgba(221,60,20,.09);display:grid;place-items:center"><span style="width:5px;height:5px;border-radius:50%;background:#dd3c14"></span></span>PII redaction</div>
+            <div style="display:flex;align-items:center;gap:9px;font:400 11.5px/1 'Sora',sans-serif;color:#94a2b2"><span style="width:18px;height:18px;border-radius:6px;background:rgba(30,50,80,.06);display:grid;place-items:center"><span style="width:5px;height:5px;border-radius:50%;background:#b6c2ce"></span></span>Web browsing · off</div>
+          </div>
+        </div>
+
+        <div style="padding:16px;border-radius:16px;background:#fff;box-shadow:0 2px 8px rgba(20,35,60,.08)">
+          <div style="display:flex;align-items:flex-start;gap:14px">
+            <div style="flex:1">
+              <div style="font:600 11.5px/1 'Sora',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#33414f">System health</div>
+              <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;align-items:center;gap:8px;font:400 11px/1 'Sora',sans-serif;color:#43535f"><span style="width:6px;height:6px;border-radius:50%;background:#1fa971"></span>Router</div>
+                <div style="display:flex;align-items:center;gap:8px;font:400 11px/1 'Sora',sans-serif;color:#43535f"><span style="width:6px;height:6px;border-radius:50%;background:#1fa971"></span>Model gateway</div>
+                <div style="display:flex;align-items:center;gap:8px;font:400 11px/1 'Sora',sans-serif;color:#43535f"><span style="width:6px;height:6px;border-radius:50%;background:#f4952a"></span>Salesforce tool</div>
+                <div style="display:flex;align-items:center;gap:8px;font:400 11px/1 'Sora',sans-serif;color:#43535f"><span style="width:6px;height:6px;border-radius:50%;background:#1fa971"></span>Vector store</div>
+                <div style="display:flex;align-items:center;gap:8px;font:400 11px/1 'Sora',sans-serif;color:#43535f"><span style="width:6px;height:6px;border-radius:50%;background:#1fa971"></span>Trace pipeline</div>
+              </div>
+            </div>
+            <div style="width:84px;height:84px;flex:none;position:relative">
+              <svg width="84" height="84" viewBox="0 0 84 84" fill="none">
+                <circle cx="42" cy="42" r="36" stroke="rgba(30,50,80,.10)" stroke-width="7"></circle>
+                <circle cx="42" cy="42" r="36" stroke="#1fa971" stroke-width="7" stroke-linecap="round" stroke-dasharray="215 226" transform="rotate(-90 42 42)"></circle>
+              </svg>
+              <div style="position:absolute;inset:0;display:grid;place-items:center"><div style="text-align:center"><div style="font:700 15px/1 'Sora',sans-serif;color:#1a8c5e">95%</div><div style="margin-top:3px;font:400 8px/1 'Sora',sans-serif;letter-spacing:.1em;color:#94a2b2">HEALTHY</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:18px 0 4px;text-align:center">
+      <div style="font:700 19px/1 'Sora',sans-serif;letter-spacing:-.01em;color:#1b2531"><span style="color:#dd3c14">Hyperframe</span> agent console</div>
+      <div style="margin-top:7px;font:400 11px/1 'JetBrains Mono',monospace;color:#94a2b2">v4.18.2 · us-east-1 · refreshed {{ refreshedAgo }}s ago</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;liveUpdates&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Console&quot;},&quot;streamSpeedMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:300,&quot;max&quot;:3000,&quot;step&quot;:100,&quot;default&quot;:1100,&quot;unit&quot;:&quot;ms&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Console&quot;}}">
+class Component extends DCLogic {
+  state = { tick: 0, logs: [], left: [], right: [] };
+
+  componentDidMount() {
+    if (this.props.liveUpdates === false) return;
+    const speed = this.props.streamSpeedMs ?? 1100;
+    this.t1 = setInterval(() => this.setState(s => ({ tick: s.tick + 1 })), 2000);
+    this.t2 = setInterval(() => this.pushLog(), speed);
+    this.t3 = setInterval(() => this.pushChips(), speed * 2);
+    for (let i = 0; i < 6; i++) this.pushLog();
+    this.pushChips();
+  }
+  componentWillUnmount() { [this.t1, this.t2, this.t3].forEach(clearInterval); }
+
+  clock() {
+    const d = new Date();
+    return [d.getHours(), d.getMinutes(), d.getSeconds()].map(n => String(n).padStart(2, "0")).join(":");
+  }
+
+  pushLog() {
+    const pool = [
+      ["INFO", "#c2401a", "route → lead-qualifier · priority normal"],
+      ["INFO", "#c2401a", "clearbit.enrich ok · 412ms · cache MISS"],
+      ["DEBUG", "#94a2b2", "fit=82 intent=71 rubric=v4 → MQL"],
+      ["INFO", "#c2401a", "model call · sonnet-4.5 · 1,842 in / 214 out"],
+      ["WARN", "#c98a12", "sfdc.create attempt 1 timed out (8000ms)"],
+      ["INFO", "#c2401a", "sfdc.create ok · lead 00Q4x8ZQ1"],
+      ["DEBUG", "#94a2b2", "guardrail pii.redact stripped 2 fields"],
+      ["INFO", "#c2401a", "run committed · 3.9s · $0.031"],
+    ];
+    const p = pool[Math.floor(Math.random() * pool.length)];
+    this.setState(s => ({ logs: [...s.logs, { t: this.clock(), lvl: p[0], color: p[1], msg: p[2] }].slice(-30) }));
+  }
+
+  chip(i, side) {
+    const names = [
+      ["LQ", "Lead Qualifier", "scoring"], ["IP", "Invoice Parser", "extract"],
+      ["ST", "Support Triage", "routing"], ["CR", "Contract Reviewer", "clauses"],
+      ["CS", "Churn Sentinel", "signals"], ["DW", "Digest Writer", "drafting"],
+      ["DI", "Doc Indexer", "embedding"], ["OB", "Onboarder", "checklist"],
+    ];
+    const n = names[(i + (side ? 3 : 0)) % names.length];
+    const states = [["LIVE", "#1fa971"], ["LIVE", "#1fa971"], ["WAIT", "#c98a12"], ["LIVE", "#1fa971"]];
+    const st = states[(i + (side ? 1 : 0)) % states.length];
+    const secs = 10 + ((i * 17 + (side ? 7 : 0)) % 50);
+    return { abbr: n[0], name: n[1], step: n[2] + " · 0:" + String(secs).padStart(2, "0"), state: st[0], color: st[1] };
+  }
+  pushChips() {
+    this.setState(s => ({
+      left: Array.from({ length: 8 }, (_, i) => this.chip(i + s.tick, false)),
+      right: Array.from({ length: 8 }, (_, i) => this.chip(i + s.tick, true)),
+    }));
+  }
+
+  poly(n, w, h, seed, amp, tick) {
+    const step = w / (n - 1);
+    return Array.from({ length: n }, (_, i) => {
+      const v = Math.sin((i + seed) * 0.8) * 0.5 + Math.sin((i + tick) * 0.35 + seed) * 0.35;
+      return (i * step).toFixed(1) + "," + (h / 2 - v * amp).toFixed(1);
+    }).join(" ");
+  }
+  wave(seed, base, amp, tick) {
+    const pts = [];
+    for (let i = 0; i <= 30; i++) {
+      const x = i * 30;
+      const y = base - (Math.sin(i * 0.32 + seed + tick * 0.25) * amp + Math.sin(i * 0.13 + seed) * amp * 0.6);
+      pts.push((i === 0 ? "M" : "L") + x + " " + y.toFixed(1));
+    }
+    return pts.join(" ");
+  }
+
+  renderVals() {
+    const t = this.state.tick;
+    const rows = [
+      ["Lead Qualifier", "inbound → CRM", 86, "#dd3c14"],
+      ["Invoice Parser", "AP inbox → NetSuite", 74, "#f4952a"],
+      ["Support Triage", "Zendesk router", 91, "#dd3c14"],
+      ["Contract Reviewer", "redline + clauses", 68, "#3f597a"],
+      ["Churn Sentinel", "usage signals", 77, "#f4952a"],
+      ["Digest Writer", "nightly exec digest", 69, "#3f597a"],
+      ["Doc Indexer", "Drive → vectors", 90, "#dd3c14"],
+    ];
+    return {
+      loadRows: rows.map((r, i) => ({
+        name: r[0], sub: r[1], val: r[2] + ((t + i) % 5), color: r[3],
+        spark: this.poly(12, 62, 22, i * 1.6, 7, t),
+      })),
+      kpiSpark: this.poly(24, 118, 24, 2, 8, t),
+      insightSpark: this.poly(26, 256, 74, 5, 24, t),
+      wave1: this.wave(0, 62, 22, t), wave2: this.wave(1.4, 70, 16, t), wave3: this.wave(2.8, 78, 11, t),
+      waveFill: this.wave(0, 62, 22, t) + " L900 104 L0 104 Z",
+      runsToday: (18247 + t * 7).toLocaleString(),
+      toolRate: (415 + (t % 9) * 3).toLocaleString(),
+      successRate: (94.2 + Math.sin(t * 0.4) * 0.4).toFixed(1),
+      p95: (3.1 + Math.sin(t * 0.3) * 0.3).toFixed(1),
+      spendToday: (276.3 + t * 0.42).toFixed(2),
+      tokensSec: (128945 + t * 31).toLocaleString(),
+      tracesOpen: 240 + (t % 14),
+      activeRuns: 528 + (t % 11),
+      queueLeft: 455 + (t % 20), queueRight: 402 + (t % 17),
+      refreshedAgo: (t * 2) % 8,
+      logs: this.state.logs,
+      leftChips: this.state.left, rightChips: this.state.right,
+      intents: [
+        { name: "Lead qualification", pct: 24.5, color: "#dd3c14" },
+        { name: "Invoice extraction", pct: 18.7, color: "#e8571f" },
+        { name: "Ticket routing", pct: 16.2, color: "#f4952a" },
+        { name: "Contract review", pct: 12.1, color: "#3f597a" },
+        { name: "Churn watch", pct: 9.8, color: "#6d8299" },
+        { name: "Other", pct: 18.7, color: "#b6c2ce" },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

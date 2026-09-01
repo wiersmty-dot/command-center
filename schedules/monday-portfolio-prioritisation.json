@@ -1,0 +1,6 @@
+{
+  "id": "monday-portfolio-prioritisation",
+  "title": "Monday portfolio prioritisation",
+  "prompt": "Use the venture-chief-of-staff skill.\n\nMonday prioritisation. Read records/opportunity-pipeline.md and records/decision-log.md in the venture-studio workspace before anything else.\n\n1. Confirm no more than three theses are Active; say so explicitly.\n2. Score each active thesis against its gate and recommend advance, hold or kill, naming the specific proof that is missing.\n3. Assign one owner and one customer-learning action with a due date inside 14 days to every active thesis.\n4. Reject any claim in the record that is unsupported or unlabelled as an assumption.\n\nCite record IDs for every material claim. Recommend only: do not advance a gate, contact anyone, spend, set prices, or commit. Founder decisions are recorded on the board, not by you.",
+  "createdAt": 1788200369.916687
+}

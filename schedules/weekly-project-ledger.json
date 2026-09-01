@@ -1,0 +1,6 @@
+{
+  "id": "weekly-project-ledger",
+  "title": "Weekly Project Ledger",
+  "prompt": "Prepare the Weekly Project Ledger from the current Venture Board, active Chief-of-Staff work, run history, and canonical project plans. For each active project, report current gate, completed work, evidence or open assumptions, decisions awaiting founder approval, and the single recommended next focus. Read and synthesize only. Do not edit files, contact anyone, spend money, or take external action. Return a concise founder-ready weekly review.",
+  "createdAt": 1788133079.7438478
+}

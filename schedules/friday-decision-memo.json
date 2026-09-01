@@ -1,0 +1,6 @@
+{
+  "id": "friday-decision-memo",
+  "title": "Friday decision memo",
+  "prompt": "Use the venture-chief-of-staff skill.\n\nFriday decision memo, following templates/weekly-decision-memo.md.\n\nInclude only: evidence that is new or was invalidated this week; a one-page scorecard per active thesis; the leads and outreach drafts that are genuinely ready for founder review; one reusable AI or product artifact; and the explicit decisions you need from me, each with the option you recommend.\n\nLeave out anything that does not change a decision. Cite record IDs throughout. Draft only: no outreach, spend, pricing, legal conclusions or commitments.",
+  "createdAt": 1788200369.9170828
+}

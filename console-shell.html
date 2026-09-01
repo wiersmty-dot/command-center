@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent Console</title>
+<!--FONTS-->
+<style>
+<!--STYLE-->
+</style>
+<link rel="stylesheet" href="/theme.css">
+<script src="/theme.js"></script>
+</head>
+<body>
+<!--BODY-->
+<script>
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const focusCSS = document.createElement('style');
+focusCSS.textContent = `
+  /* six looping animations in this design; honour the system preference */
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;
+      transition-duration:.01ms !important}
+  }
+  input:focus-visible,textarea:focus-visible{outline:2px solid #bf3410;outline-offset:2px;border-color:#bf3410 !important}
+  button:focus-visible,[data-skill]:focus-visible{outline:2px solid #bf3410;outline-offset:3px;border-radius:10px}
+  [data-skill]{cursor:pointer;transition:transform .12s ease-out,box-shadow .18s ease-out,border-color .18s ease-out}
+  [data-skill]:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(20,35,60,.10)}
+  [data-skill]:active{transform:translateY(0) scale(.99)}
+  [data-skill][aria-pressed="true"]{border-color:#bf3410 !important;box-shadow:0 0 0 1px #bf3410 inset}
+  button{transition:filter .18s ease-out,opacity .18s ease-out}
+  button:hover:not(:disabled){filter:brightness(1.06)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  input,textarea{min-height:38px;transition:border-color .18s ease-out}
+  /* counts and durations sit in columns — keep the figures from dancing */
+  .tnum,[data-bind]{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}`;
+document.head.appendChild(focusCSS);
+const api = async (p, o) => { const r = await fetch(p, o); const j = await r.json().catch(()=>({})); if (!r.ok) throw j; return j; };
+
+function poly(n, w, h, seed, amp, tick) {
+  const step = w / (n - 1);
+  return Array.from({ length: n }, (_, i) => {
+    const v = Math.sin((i + seed) * 0.8) * 0.5 + Math.sin((i + tick) * 0.35 + seed) * 0.35;
+    return (i * step).toFixed(1) + ',' + (h / 2 - v * amp).toFixed(1);
+  }).join(' ');
+}
+function wave(seed, base, amp, tick) {
+  const pts = [];
+  for (let i = 0; i <= 30; i++) {
+    const x = i * 30;
+    const y = base - (Math.sin(i * 0.32 + seed + tick * 0.25) * amp + Math.sin(i * 0.13 + seed) * amp * 0.6);
+    pts.push((i === 0 ? 'M' : 'L') + x + ' ' + y.toFixed(1));
+  }
+  return pts.join(' ');
+}
+
+/* panels the design shows that this console has no use for */
+const DROP = ['Concurrent capacity', 'Tool calls / min', 'Spend today', 'Work mix',
+              'Data streams', 'Autonomy', 'Success rate', 'Runs today', 'Outcome distribution'];
+
+function cardOf(el) {
+  let n = el;
+  while (n && n !== document.body) {
+    const st = (n.getAttribute && n.getAttribute('style')) || '';
+    if (st.includes('box-shadow') && st.includes('border-radius')) return n;
+    n = n.parentElement;
+  }
+  return null;
+}
+const leaf = t => $$('div,span').find(e => e.children.length === 0 &&
+  e.textContent.trim().toLowerCase() === t.toLowerCase());
+
+function prune() {
+  DROP.forEach(l => { const e = leaf(l); const c = e && cardOf(e); if (c) c.remove(); });
+}
+
+function rowsUnder(headText) {
+  const head = leaf(headText);
+  if (!head) return null;
+  const box = head.parentElement;
+  const kids = [...box.children].filter(e => e !== head);
+  if (kids.length === 1 && kids[0].children.length > 1)
+    return { head, parent: kids[0], rows: [...kids[0].children] };
+  return { head, parent: box, rows: kids };
+}
+function setRowText(row, text) {
+  const tn = [...row.childNodes].filter(n => n.nodeType === 3 && n.textContent.trim());
+  if (tn.length) { tn[tn.length - 1].nodeValue = text; return; }
+  const el = $$('div,span', row).filter(e => e.children.length === 0 && e.textContent.trim().length > 2).pop();
+  if (el) el.textContent = text;
+}
+
+/* ---- template runtime (loops + bindings from the design) ----------------- */
+const LOOPS = $$('[data-for]').map(host => ({
+  host, list: host.dataset.for, as: host.dataset.as,
+  tpl: host.querySelector('template').innerHTML
+}));
+function subst(html, alias, item) {
+  return html.replace(/\{\{\s*([\w.]+)\s*\}\}/g, (_, p) => {
+    const [h, ...rest] = p.split('.');
+    let v = h === alias ? item : undefined;
+    rest.forEach(k => { v = v == null ? v : v[k]; });
+    return v == null ? '' : String(v);
+  });
+}
+function render(vals) {
+  $$('[data-bind]').forEach(el => { const v = vals[el.dataset.bind]; if (v != null) el.textContent = v; });
+  $$('[data-battr]').forEach(el => {
+    const [a, k] = el.dataset.battr.split(':'); const v = vals[k];
+    if (v != null) el.setAttribute(a, v);
+  });
+  LOOPS.forEach(l => {
+    const items = vals[l.list];
+    if (!Array.isArray(items)) return;
+    const sig = JSON.stringify(items);
+    if (l.sig === sig) return;
+    l.sig = sig;
+    l.host.innerHTML = items.map(it => subst(l.tpl, l.as, it)).join('');
+  });
+}
+
+/* ---- state --------------------------------------------------------------- */
+let DATA = null, SELECTED = null, tick = 0;
+const COLORS = ['#bf3410', '#f4952a', '#3f597a'];
+const initials = s => s.replace(/[^a-z]/gi, '').slice(0, 2).toUpperCase();
+
+function chipFor(a) {
+  return {
+    abbr: initials(a.skill), name: a.label, step: a.group.toLowerCase(),
+    state: a.hasFile ? 'READY' : 'NO FILE',
+    color: a.skill === (SELECTED && SELECTED.skill) ? '#bf3410' : (a.hasFile ? '#147a52' : '#96650b')
+  };
+}
+
+function selectAgent(skill) {
+  SELECTED = DATA.agents.find(a => a.skill === skill) || null;
+  paintCore();
+  paintChips();
+}
+
+function paintCore() {
+  const t = leaf('HF CORE') || document.querySelector('[data-lit="coreTitle"]');
+  const sub = document.querySelector('[data-lit="coreSub"]') ||
+              $$('div,span').find(e => e.children.length === 0 && /^ROUTER/i.test(e.textContent.trim()));
+  if (t) { t.dataset.lit = 'coreTitle'; t.textContent = SELECTED ? initials(SELECTED.skill) : 'AGENTS'; }
+  if (sub) { sub.dataset.lit = 'coreSub'; sub.textContent = SELECTED ? SELECTED.group.toUpperCase() : `${DATA.agents.length} REGISTERED`; }
+  const d = document.getElementById('agentDetail');
+  if (!d) return;
+  if (!SELECTED) { d.innerHTML = '<span style="color:#5c6b7d">Select an agent on the map.</span>'; return; }
+  const a = SELECTED;
+  d.innerHTML = `
+    <div style="font:600 13px 'Sora',sans-serif;color:#1b2531">${a.label}</div>
+    <div style="margin-top:3px;font:400 11px 'JetBrains Mono',monospace;color:#5c6b7d">
+      ${a.skill} · ${a.group} · ${a.ask ? 'asks for detail' : 'fires immediately'}</div>
+    <div style="margin-top:9px;font:400 11.5px/1.5 'Sora',sans-serif;color:#43535f">${a.prompt}</div>
+    ${a.placeholder ? `<div style="margin-top:6px;font:400 11px/1.45 'Sora',sans-serif;color:#5c6b7d">e.g. ${a.placeholder}</div>` : ''}
+    <div style="margin-top:10px;display:flex;align-items:center;gap:16px;font:500 11px 'JetBrains Mono',monospace;color:#43535f">
+      <span>${a.runs} runs</span><span>${a.avg ? a.avg + 's avg' : '—'}</span>
+      <span>${a.faults} faults</span>
+      <span style="color:${a.hasFile ? '#147a52' : '#96650b'}">${a.hasFile ? 'skill file present' : 'no skill file'}</span>
+      <button id="runAgent" style="margin-left:auto;padding:8px 16px;min-height:34px;border:0;border-radius:9px;
+        cursor:pointer;background:linear-gradient(145deg,#f4652a,#bf3410);color:#fff;
+        font:600 12px 'Sora',sans-serif">Run</button>
+    </div>`;
+  const rb = document.getElementById('runAgent');
+  if (rb) rb.onclick = async () => {
+    rb.textContent = 'running…'; rb.disabled = true;
+    try {
+      await api('/api/run', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ skill: a.skill, label: a.label, prompt: a.prompt }) });
+      rb.textContent = 'started';
+    } catch (e) { rb.textContent = 'failed'; }
+  };
+}
+
+function paintChips() {
+  const list = DATA.agents;
+  const half = Math.ceil(list.length / 2);
+  render({
+    leftChips: list.slice(0, half).map(chipFor),
+    rightChips: list.slice(half).map(chipFor),
+    queueLeft: 0, queueRight: 0
+  });
+  // tag each chip with its agent rather than matching on rendered text
+  const L = $$('[data-for="leftChips"] > *'), R = $$('[data-for="rightChips"] > *');
+  const dress = (el, a) => {
+    if (!a) return;
+    el.dataset.skill = a.skill;
+    el.style.cursor = 'pointer';
+    el.tabIndex = 0;
+    el.setAttribute('role', 'button');
+    el.setAttribute('aria-label', `${a.label}, ${a.group}, ${a.hasFile ? 'ready' : 'no skill file'}`);
+    el.setAttribute('aria-pressed', SELECTED && SELECTED.skill === a.skill ? 'true' : 'false');
+    el.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); } };
+  };
+  L.forEach((el, i) => dress(el, list[i]));
+  R.forEach((el, i) => dress(el, list[half + i]));
+}
+
+/* ---- structure panel (was Top task types) -------------------------------- */
+function paintStructure() {
+  const p = rowsUnder('Top task types') || rowsUnder('Structure');
+  if (!p) return;
+  p.head.textContent = 'Structure';
+  if (!p.rows.length) return;
+  const tpl = p.rows[0].cloneNode(true);
+  p.rows.forEach(r => r.remove());
+  DATA.structure.forEach(sct => {
+    const row = tpl.cloneNode(true);
+    const leaves = $$('div,span', row).filter(e => e.children.length === 0);
+    if (leaves[0]) { leaves[0].textContent = sct.name; leaves[0].style.fontSize = '11px'; }
+    const pct = leaves.find(e => /%$/.test(e.textContent));
+    if (pct) pct.textContent = sct.layer;
+    const bar = row.querySelector('div[style*="background"][style*="height"]');
+    if (bar) { bar.style.width = '100%'; bar.style.background = '#c7ced7'; }
+    row.title = sct.detail;
+    const sub = document.createElement('div');
+    sub.style.cssText = "font:400 11px 'JetBrains Mono',monospace;color:#5c6b7d;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
+    sub.textContent = sct.detail;
+    row.appendChild(sub);
+    p.parent.appendChild(row);
+  });
+}
+
+/* ---- build agent (replaces the live trace card) -------------------------- */
+function buildForm() {
+  const head = leaf('Live trace');
+  const card = head && cardOf(head);
+  if (!card || card.dataset.built) return;
+  card.dataset.built = '1';
+  const groups = [...new Set(DATA.agents.map(a => a.group))];
+  card.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="font:600 11.5px/1 'Sora',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#33414f">Build agent</div>
+      <div style="font:400 11px 'JetBrains Mono',monospace;color:#5c6b7d">writes a skill file and registers the button</div>
+      <div id="buildMsg" style="margin-left:auto;font:500 11px 'JetBrains Mono',monospace"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px">
+      ${[['name','name','lower-case-slug'],['label','label','Button label'],['placeholder','placeholder','e.g. price the parts list']].map(([id,ph,hint])=>`
+        <label style="display:flex;flex-direction:column;gap:5px">
+          <span style="font:500 11px 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#5c6b7d">${id}</span>
+          <input id="f_${id}" placeholder="${hint}" style="padding:9px 11px;border:1px solid rgba(30,45,65,.16);border-radius:9px;background:#fff;font:400 12px 'Sora',sans-serif;color:#1b2531;outline:none">
+        </label>`).join('')}
+      <label style="display:flex;flex-direction:column;gap:5px">
+        <span style="font:500 11px 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#5c6b7d">group</span>
+        <input id="f_group" list="groupList" placeholder="Build" style="padding:9px 11px;border:1px solid rgba(30,45,65,.16);border-radius:9px;background:#fff;font:400 12px 'Sora',sans-serif;color:#1b2531;outline:none">
+        <datalist id="groupList">${groups.map(g=>`<option value="${g}">`).join('')}</datalist>
+      </label>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+      <label style="display:flex;flex-direction:column;gap:5px">
+        <span style="font:500 11px 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#5c6b7d">when to use it</span>
+        <textarea id="f_purpose" rows="2" placeholder="Use when …" style="padding:9px 11px;border:1px solid rgba(30,45,65,.16);border-radius:9px;background:#fff;font:400 12px/1.45 'Sora',sans-serif;color:#1b2531;outline:none;resize:vertical"></textarea>
+      </label>
+      <label style="display:flex;flex-direction:column;gap:5px">
+        <span style="font:500 11px 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#5c6b7d">instructions</span>
+        <textarea id="f_instructions" rows="2" placeholder="The steps this agent should follow" style="padding:9px 11px;border:1px solid rgba(30,45,65,.16);border-radius:9px;background:#fff;font:400 12px/1.45 'Sora',sans-serif;color:#1b2531;outline:none;resize:vertical"></textarea>
+      </label>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;margin-top:12px">
+      <label style="display:flex;align-items:center;gap:7px;font:400 11.5px 'Sora',sans-serif;color:#43535f">
+        <input type="checkbox" id="f_ask" checked> asks for a line of detail before running
+      </label>
+      <button id="f_create" style="margin-left:auto;padding:9px 18px;border:0;border-radius:9px;cursor:pointer;background:linear-gradient(145deg,#f4652a,#bf3410);color:#fff;font:600 12px 'Sora',sans-serif;box-shadow:0 6px 16px rgba(221,60,20,.28)">Create agent</button>
+    </div>`;
+  document.getElementById('f_create').onclick = createAgent;
+}
+
+async function createAgent() {
+  const v = id => (document.getElementById('f_' + id) || {}).value;
+  const msg = document.getElementById('buildMsg');
+  const btn = document.getElementById('f_create');
+  btn.disabled = true;
+  msg.style.color = '#5c6b7d'; msg.textContent = 'creating…';
+  try {
+    const r = await api('/api/agents', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: v('name'), label: v('label'), group: v('group'),
+        purpose: v('purpose'), instructions: v('instructions'),
+        placeholder: v('placeholder'), ask: document.getElementById('f_ask').checked
+      })
+    });
+    msg.style.color = '#147a52';
+    msg.textContent = `${r.skill} created${r.createdFile ? ' · skill file written' : ''}`;
+    ['name','label','placeholder','purpose','instructions'].forEach(id => {
+      const el = document.getElementById('f_' + id); if (el) el.value = '';
+    });
+    await load();
+  } catch (e) {
+    msg.style.color = '#c2401a';
+    msg.textContent = e.error || 'could not create';
+  } finally {
+    document.getElementById('f_create').disabled = false;
+  }
+}
+
+/* ---- headline / tiles ---------------------------------------------------- */
+let RELABELLED = false;
+function relabel() {
+  if (RELABELLED) return; RELABELLED = true;
+  const t = leaf('Every agent.');
+  if (t) t.textContent = 'One map.';
+  const sub = leaf('Build, edit and monitor your agent fleet. Live traces, cost and guardrails in one view.');
+  if (sub) sub.textContent = 'Every agent, what it touches, and how the system fits together.';
+  const load = leaf('Fourteen agents. One orchestrator.');
+  if (load) load.textContent = 'Ranked by how often they run.';
+  const orch = leaf('Routing · planning · tool execution');
+  if (orch) orch.textContent = 'Click an agent to inspect it';
+  const orchTitle = leaf('ORCHESTRATION LAYER');
+  if (orchTitle) orchTitle.textContent = 'AGENT MAP';
+  // detail surface under the map
+  const core = leaf('HF CORE');
+  const wrap = core && cardOf(core);
+  if (wrap && !document.getElementById('agentDetail')) {
+    const d = document.createElement('div');
+    d.id = 'agentDetail';
+    d.style.cssText = "margin-top:12px;padding:14px 16px;border:1px solid rgba(30,45,65,.12);"
+      + "border-radius:14px;background:#fff;min-height:78px;font:400 12px 'Sora',sans-serif;"
+      + "box-shadow:0 1px 3px rgba(20,35,60,.08)";
+    // climb past the fixed-height, overflow-hidden map box before inserting,
+    // otherwise the card is clipped and sits on top of the ring
+    let box = core;
+    while (box && box !== document.body) {
+      const st = getComputedStyle(box);
+      if (parseInt(st.height) > 400 && st.overflow === 'hidden') break;
+      box = box.parentElement;
+    }
+    (box && box !== document.body ? box : wrap).insertAdjacentElement('afterend', d);
+  }
+  // every agent is shown; there is no queue behind the map
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  for (let n = walker.nextNode(); n; n = walker.nextNode())
+    if (/queued/.test(n.textContent)) n.nodeValue = '';
+  const nb = $$('button,div,span').find(e => e.textContent.trim() === 'New agent');
+  if (nb) nb.onclick = () => document.getElementById('f_name') &&
+    document.getElementById('f_name').focus();
+}
+
+function tiles() {
+  const set = (label, value, sub) => {
+    const l = leaf(label); if (!l) return;
+    const card = cardOf(l); if (!card) return;
+    const nums = $$('div,span', card).filter(e => e.children.length === 0 && /^[\d,]+$/.test(e.textContent.trim()));
+    if (nums[0]) nums[0].textContent = value;
+    if (sub) {
+      const subs = $$('div,span', card).filter(e => e.children.length === 0 && e.textContent.trim() && e !== l && !nums.includes(e));
+      if (subs[0]) subs[0].textContent = sub;
+    }
+  };
+  set('ACTIVE AGENTS', DATA.agents.length);
+  // these two tiles were bound to values this page no longer supplies, so match
+  // by position within the tile rather than by the digits already rendered
+  const retile = (labelText, newLabel, value) => {
+    const l = leaf(labelText) || leaf(newLabel);
+    if (!l) return;
+    const n = [...l.parentElement.children].find(c => c !== l);
+    if (n) n.textContent = value;
+    l.textContent = newLabel;
+  };
+  retile('Deployed', 'Groups', DATA.groups.length);
+  retile('Runs live', 'With skill file', DATA.withFile);
+}
+
+/* ---- capabilities (kept, from the console payload) ----------------------- */
+async function capabilities() {
+  let c; try { c = await api('/api/console'); } catch (e) { return; }
+  const p = rowsUnder('Capabilities enabled');
+  if (p && p.rows.length) {
+    const tpl = p.rows[0].cloneNode(true);
+    p.rows.forEach(r => r.remove());
+    c.capabilities.forEach(cap => {
+      const row = tpl.cloneNode(true);
+      setRowText(row, cap.name);
+      row.style.opacity = cap.on ? '1' : '.35';
+      const dot = row.querySelector('span[style*="border-radius:50%"]');
+      if (dot) dot.style.background = cap.on ? '#5c6b7d' : '#aab4c0';
+      p.parent.appendChild(row);
+    });
+  }
+  const h = rowsUnder('System health');
+  if (h && h.rows.length) {
+    const tpl = h.rows[0].cloneNode(true);
+    h.rows.forEach(r => r.remove());
+    [{ name: 'Command Center runner', ok: true }]
+      .concat(c.routines.map(r => ({ name: `${r.name} · ${r.time}`, ok: r.status === 'DONE' })))
+      .forEach(it => {
+        const row = tpl.cloneNode(true);
+        setRowText(row, it.name);
+        row.style.opacity = it.ok ? '1' : '.45';
+        h.parent.appendChild(row);
+      });
+  }
+  const hp = $$('div,span').find(e => e.children.length === 0 && /^\d+%$/.test(e.textContent.trim()));
+  if (hp && c.routines.length) hp.textContent = Math.round(100 * c.routinesFired / c.routines.length) + '%';
+}
+
+/* ---- load ---------------------------------------------------------------- */
+async function load() {
+  DATA = await api('/api/agents');
+  const t = tick++;
+  relabel();
+  paintChips();
+  paintCore();
+  paintStructure();
+  buildForm();
+  tiles();
+  render({
+    loadRows: (DATA.agents.filter(a => a.runs).length
+      ? DATA.agents.filter(a => a.runs)
+      : [{ label: 'No agent has run yet', runs: 0, avg: 0 }]).slice(0, 7).map((a, i) => ({
+      name: a.label, sub: `${a.runs} runs · avg ${a.avg}s`, val: a.runs,
+      color: COLORS[i % COLORS.length], spark: poly(12, 62, 22, i * 1.6, 7, t)
+    })),
+    logs: [], intents: [],
+    kpiSpark: poly(24, 118, 24, 2, 8, t),
+    insightSpark: poly(26, 256, 74, 5, 24, t),
+    wave1: wave(0, 62, 22, t), wave2: wave(1.4, 70, 16, t), wave3: wave(2.8, 78, 11, t),
+    waveFill: wave(0, 62, 22, t) + ' L900 104 L0 104 Z',
+    refreshedAgo: 0
+  });
+}
+
+document.addEventListener('click', e => {
+  const chip = e.target.closest('[data-skill]');
+  if (chip && DATA) selectAgent(chip.dataset.skill);
+});
+
+prune();
+load().then(capabilities);
+setInterval(() => load().catch(()=>{}), 15000);
+</script>
+<script src="/nav.js" defer></script>
+</body>
+</html>

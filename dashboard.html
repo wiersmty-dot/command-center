@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Palette and fonts come from /theme.css. These are local names for the
+     shared tokens, so the classic pane follows the theme like every other
+     page instead of keeping its own amber-on-slate scheme. */
+  :root {
+    --raised:    var(--panel);
+    --raised-hi: var(--panel-2);
+    --rule:      var(--line);
+    --signal:    var(--accent);
+    --run:       var(--ok);
+    --fault:     var(--bad);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    display: flex;
+    flex-direction: column;
+    /* faint machined texture, kept almost invisible */
+    background-image: repeating-linear-gradient(
+      180deg, var(--line-soft) 0 1px, transparent 1px 4px);
+  }
+
+  /* ---------- nameplate ---------- */
+
+  .plate {
+    display: flex;
+    align-items: baseline;
+    gap: 18px;
+    padding: 14px 22px 12px;
+    border-bottom: 1px solid var(--rule);
+    flex-wrap: wrap;
+  }
+  .plate h1 {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+  }
+  .plate .units {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    letter-spacing: 0.08em;
+  }
+  .plate .right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--dim);
+  }
+
+  .lamp {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--rule);
+    flex: none;
+    box-shadow: 0 0 0 2px var(--shadow) inset;
+  }
+  .lamp[data-state="ready"] { background: var(--signal); box-shadow: 0 0 7px var(--accent); }
+  .lamp[data-state="running"] { background: var(--run); box-shadow: 0 0 8px var(--ok); animation: breathe 1.15s ease-in-out infinite; }
+  .lamp[data-state="fault"] { background: var(--fault); box-shadow: 0 0 8px var(--bad); }
+  .lamp[data-state="done"] { background: var(--ink); }
+
+  @keyframes breathe {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.35; }
+  }
+
+  /* ---------- layout ---------- */
+
+  .deck {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    min-height: 0;
+  }
+
+  .rail {
+    border-right: 1px solid var(--rule);
+    overflow-y: auto;
+    padding: 16px 14px 40px;
+  }
+
+  .stage {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  /* ---------- skill switches ---------- */
+
+  .band {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin: 18px 0 8px 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .band::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+  .band:first-child { margin-top: 0; }
+
+  .tile {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: var(--raised);
+    color: var(--ink);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 9px 11px 8px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    font-family: var(--sans);
+    transition: background 110ms ease, border-color 110ms ease, transform 60ms ease;
+  }
+  .tile:hover { background: var(--raised-hi); border-color: var(--dim); }
+  .tile:active { transform: translateY(1px); }
+  .tile:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+  .tile[data-armed="1"] { border-color: var(--signal); background: var(--raised-hi); }
+
+  .tile .top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tile .name {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  .tile .slug {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--dim);
+    margin-top: 3px;
+    padding-left: 17px;
+  }
+
+  /* ---------- output ---------- */
+
+  .strip {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 20px;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--dim);
+    min-height: 44px;
+  }
+  .strip .job { color: var(--ink); }
+
+  .kill {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--fault);
+    border: 1px solid var(--fault);
+    border-radius: 3px;
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+  .kill[hidden] { display: none; }
+  .kill:hover { background: var(--line-soft); }
+
+  /* One run per pane was a UI limit, not a server one. These are the runs in
+     flight; the lit tab is the one the pane below is showing. Hidden entirely
+     with fewer than two, so a single run looks exactly as it always did. */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    padding: 8px 20px;
+    border-bottom: 1px solid var(--rule);
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+  .tabs[hidden] { display: none; }
+  .tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    flex: none;
+    background: transparent;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    max-width: 260px;
+  }
+  .tab:hover { border-color: var(--dim); color: var(--ink); }
+  .tab[data-on="1"] { border-color: var(--accent); color: var(--ink); }
+  .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .tab .tl {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tab .ts { color: var(--dim); font-variant-numeric: tabular-nums; }
+
+  .alert {
+    padding: 9px 20px;
+    border-bottom: 1px solid var(--rule);
+    border-left: 2px solid var(--fault);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+  }
+  .alert[hidden] { display: none; }
+
+  .log {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px 22px 24px;
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--ink);
+  }
+  .log .hint {
+    color: var(--dim);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.6;
+    display: block;
+    max-width: 46ch;
+  }
+  .log .hint b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- input ---------- */
+
+  .console {
+    border-top: 1px solid var(--rule);
+    padding: 12px 20px 16px;
+    background: var(--panel);
+  }
+  .console .armed {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--signal);
+    letter-spacing: 0.06em;
+    margin-bottom: 7px;
+    display: none;
+  }
+  .console .armed[data-on="1"] { display: block; }
+
+  .row { display: flex; gap: 10px; align-items: flex-end; }
+
+  textarea {
+    flex: 1;
+    resize: none;
+    background: var(--bg);
+    color: var(--ink);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 10px 12px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.5;
+    min-height: 44px;
+    max-height: 160px;
+  }
+  textarea:focus { outline: none; border-color: var(--signal); }
+  textarea::placeholder { color: var(--dim); }
+
+  .go {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: var(--signal);
+    color: var(--on-accent);
+    border: none;
+    border-radius: 3px;
+    padding: 12px 20px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .go:hover { background: var(--accent); filter: brightness(1.12); }
+  .go:disabled { background: var(--rule); color: var(--dim); cursor: not-allowed; }
+  .go:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  .tip {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--dim);
+    margin-top: 7px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ---------- history ---------- */
+
+  .past { border-top: 1px solid var(--rule); max-height: 152px; overflow-y: auto; }
+  .past button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--line-soft);
+    color: var(--dim);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 8px 20px;
+    cursor: pointer;
+  }
+  .past button:hover { background: var(--raised); color: var(--ink); }
+  .past .who { color: var(--ink); flex: 1; }
+  .past .secs { font-variant-numeric: tabular-nums; }
+
+  @media (max-width: 760px) {
+    .deck { grid-template-columns: 1fr; }
+    .rail { border-right: none; border-bottom: 1px solid var(--rule); max-height: 42vh; }
+    .stage { min-height: 60vh; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+<link rel="stylesheet" href="/theme.css">
+<script src="/theme.js"></script>
+</head>
+<body>
+
+<header class="plate">
+  <h1>Command Center</h1>
+  <span class="units">BAYCO · PLANT 440 · BUILD · MONEY</span>
+  <div class="right">
+    <span id="where">—</span>
+    <span class="lamp" id="lamp" data-state="ready"></span>
+    <span id="clock">--:--:--</span>
+  </div>
+</header>
+
+<div class="deck">
+
+  <nav class="rail" id="rail" aria-label="Skills"></nav>
+
+  <main class="stage">
+    <div class="strip">
+      <span class="lamp" id="joblamp"></span>
+      <span class="job" id="jobname">Nothing running</span>
+      <span id="jobtime"></span>
+      <button class="kill" id="kill" hidden>Stop</button>
+    </div>
+
+    <div class="tabs" id="tabs" hidden></div>
+    <div class="alert" id="alert" hidden></div>
+
+    <div class="log" id="log"><span class="hint">Pick a skill on the left, or just type below.<br><br>Buttons marked with an amber lamp want a line of detail from you first — click one, and it loads its prompt here. Everything runs <b>claude -p</b> in your working folder and streams the output back to this pane.</span></div>
+
+    <div class="console">
+      <div class="armed" id="armed"></div>
+      <div class="row">
+        <textarea id="box" rows="1" placeholder="Ask Claude anything, or click a skill to load it…"></textarea>
+        <button class="go" id="go">Run</button>
+      </div>
+      <div class="tip">Enter to run · Shift+Enter for a new line · Esc to clear the loaded skill</div>
+    </div>
+
+    <div class="past" id="past"></div>
+  </main>
+
+</div>
+
+<script>
+(() => {
+  const rail = document.getElementById('rail');
+  const log = document.getElementById('log');
+  const box = document.getElementById('box');
+  const go = document.getElementById('go');
+  const kill = document.getElementById('kill');
+  const armed = document.getElementById('armed');
+  const jobname = document.getElementById('jobname');
+  const jobtime = document.getElementById('jobtime');
+  const joblamp = document.getElementById('joblamp');
+  const lamp = document.getElementById('lamp');
+  const past = document.getElementById('past');
+
+  let skills = [];
+  let pending = null;      // skill armed for input
+  // Runs are keyed, not singular: several can be in flight, each keeping its own
+  // output buffer and read offset. `viewing` only decides which one the pane
+  // shows -- switching tabs never interrupts a run.
+  const jobs = new Map();  // id -> {id,label,status,started,offset,text,elapsed}
+  let viewing = null;      // job id the log pane is showing
+  let poll = null;
+  let ticker = null;
+
+  const tabs = document.getElementById('tabs');
+  const alertBar = document.getElementById('alert');
+  const running = () => [...jobs.values()].filter(j => j.status === 'running');
+  const secs = j => j.status === 'running'
+    ? Math.floor(Date.now() / 1000 - j.started)
+    : (j.elapsed || 0);
+
+  const pad = n => String(n).padStart(2, '0');
+
+  setInterval(() => {
+    const d = new Date();
+    document.getElementById('clock').textContent =
+      `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }, 1000);
+
+  async function boot() {
+    try {
+      const r = await fetch('/api/skills');
+      const data = await r.json();
+      skills = data.skills || [];
+      document.getElementById('where').textContent = data.workdir || '';
+      drawRail();
+      drawHistory();
+    } catch (e) {
+      rail.innerHTML = '<div class="band">Offline</div><p style="color:var(--dim);font-size:13px">The server stopped. Restart it with <code>python3 server.py</code>.</p>';
+    }
+  }
+
+  function drawRail() {
+    rail.innerHTML = '';
+    const groups = [];
+    skills.forEach(s => { if (!groups.includes(s.group)) groups.push(s.group); });
+
+    groups.forEach(g => {
+      const band = document.createElement('div');
+      band.className = 'band';
+      band.textContent = g;
+      rail.appendChild(band);
+
+      skills.filter(s => s.group === g).forEach(s => {
+        const b = document.createElement('button');
+        b.className = 'tile';
+        b.dataset.skill = s.skill;
+        b.innerHTML = `<span class="top"><span class="lamp" data-state="${s.ask ? 'ready' : ''}"></span>` +
+                      `<span class="name"></span></span><span class="slug"></span>`;
+        b.querySelector('.name').textContent = s.label;
+        b.querySelector('.slug').textContent = s.skill;
+        b.addEventListener('click', () => pick(s));
+        rail.appendChild(b);
+      });
+    });
+  }
+
+  function pick(s) {
+    if (s.ask) {
+      pending = s;
+      armed.dataset.on = '1';
+      armed.textContent = `▸ ${s.skill} — add your detail, then Run`;
+      box.placeholder = s.placeholder || 'What should it do?';
+      box.value = '';
+      box.focus();
+      document.querySelectorAll('.tile').forEach(t =>
+        t.dataset.armed = t.dataset.skill === s.skill ? '1' : '0');
+    } else {
+      disarm();
+      launch(s.skill, s.label, s.prompt);
+    }
+  }
+
+  function say(msg) {
+    alertBar.hidden = !msg;
+    alertBar.textContent = msg || '';
+  }
+
+  function drawTabs() {
+    const list = [...jobs.values()];
+    tabs.hidden = list.length < 2;
+    if (tabs.hidden) { tabs.innerHTML = ''; return; }
+    tabs.innerHTML = '';
+    list.forEach(j => {
+      const b = document.createElement('button');
+      b.className = 'tab';
+      b.type = 'button';
+      b.dataset.id = j.id;
+      b.dataset.on = j.id === viewing ? '1' : '0';
+      b.innerHTML = `<span class="lamp" data-state="${j.status}"></span>` +
+                    `<span class="tl"></span><span class="ts">${secs(j)}s</span>`;
+      b.querySelector('.tl').textContent = j.label;
+      b.addEventListener('click', () => view(j.id));
+      tabs.appendChild(b);
+    });
+  }
+
+  // Cheap path for the half-second timer: touch the digits, not the DOM tree.
+  function tickTimes() {
+    const j = jobs.get(viewing);
+    if (j) jobtime.textContent = `${secs(j)}s`;
+    tabs.querySelectorAll('.tab').forEach(b => {
+      const t = jobs.get(b.dataset.id);
+      if (t) b.querySelector('.ts').textContent = `${secs(t)}s`;
+    });
+  }
+
+  function view(id) {
+    const j = jobs.get(id);
+    if (!j) return;
+    viewing = id;
+    log.textContent = j.text;
+    log.scrollTop = log.scrollHeight;
+    jobname.textContent = j.label;
+    jobtime.textContent = `${secs(j)}s`;
+    kill.hidden = j.status !== 'running';
+    setState(j.status);
+    drawTabs();
+  }
+
+  // Finished runs stay as tabs so you can read them, but not forever.
+  function prune() {
+    const done = [...jobs.values()].filter(
+      j => j.status !== 'running' && j.id !== viewing);
+    while (jobs.size > 6 && done.length) jobs.delete(done.shift().id);
+  }
+
+  function ensurePolling() {
+    if (!poll) poll = setInterval(tick, 700);
+    if (!ticker) ticker = setInterval(tickTimes, 500);
+  }
+
+  function stopPolling() {
+    clearInterval(poll); clearInterval(ticker);
+    poll = ticker = null;
+  }
+
+  function disarm() {
+    pending = null;
+    armed.dataset.on = '0';
+    box.placeholder = 'Ask Claude anything, or click a skill to load it…';
+    document.querySelectorAll('.tile').forEach(t => t.dataset.armed = '0');
+  }
+
+  async function launch(skill, label, prompt) {
+    say('');
+    go.disabled = true;
+
+    let res;
+    try {
+      res = await fetch('/api/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ skill, label, prompt })
+      }).then(r => r.json());
+    } catch (e) {
+      say('The server is not responding. Restart it and try again.');
+      go.disabled = false;
+      return;
+    }
+    go.disabled = false;
+
+    // An error must not wipe the pane -- another run may be streaming into it.
+    if (res.error) { say(res.error); return; }
+
+    jobs.set(res.id, {
+      id: res.id, label, skill, status: 'running',
+      started: res.started, offset: 0, text: '', elapsed: 0,
+    });
+    prune();
+    view(res.id);
+    ensurePolling();
+    tick();
+  }
+
+  async function tick() {
+    const live = running();
+    if (!live.length) { stopPolling(); return; }
+
+    let finished = false;
+    await Promise.all(live.map(async j => {
+      let r;
+      try {
+        r = await fetch(`/api/job/${j.id}?offset=${j.offset}`).then(x => x.json());
+      } catch (e) { return; }          // a blip: keep the run, try again next tick
+      if (r.error) return;
+
+      if (r.chunk) {
+        j.text += r.chunk;
+        j.offset = r.offset;
+        if (viewing === j.id) {
+          const atEnd = log.scrollHeight - log.scrollTop - log.clientHeight < 40;
+          log.textContent += r.chunk;
+          if (atEnd) log.scrollTop = log.scrollHeight;   // don't yank the view
+        }                                                // while you're reading back
+      }
+
+      if (r.status !== 'running') {
+        j.status = r.status;
+        j.elapsed = r.elapsed;
+        finished = true;
+        if (viewing === j.id) {
+          jobtime.textContent = `${r.elapsed}s`;
+          kill.hidden = true;
+          setState(r.status);
+        }
+      }
+    }));
+
+    drawTabs();
+    if (finished) drawHistory();
+    if (!running().length) { stopPolling(); setState(jobs.get(viewing)?.status || 'ready'); }
+  }
+
+  function setState(s) {
+    joblamp.dataset.state = s;
+    // The pane lamp is the run you're looking at; the masthead lamp is whether
+    // anything at all is still going.
+    lamp.dataset.state = running().length ? 'running' : 'ready';
+  }
+
+  async function drawHistory() {
+    let data;
+    try { data = await fetch('/api/history').then(r => r.json()); } catch (e) { return; }
+
+    // Adopt runs this page did not start. Several can now be live at once, and a
+    // run launched from orbit or a second tab would otherwise be invisible here
+    // -- which was harmless when the pane could only ever show one.
+    (data.runs || []).filter(r => r.status === 'running' && !jobs.has(r.id))
+      .forEach(r => {
+        jobs.set(r.id, {
+          id: r.id, label: r.label, skill: r.skill, status: 'running',
+          started: r.started, offset: 0, text: '', elapsed: 0,
+        });
+        if (!viewing) view(r.id);
+      });
+    if (running().length) { ensurePolling(); drawTabs(); }
+
+    past.innerHTML = '';
+    (data.runs || []).forEach(r => {
+      const t = new Date(r.started * 1000);
+      const b = document.createElement('button');
+      b.innerHTML = `<span class="lamp" data-state="${r.status}"></span>` +
+                    `<span>${pad(t.getHours())}:${pad(t.getMinutes())}</span>` +
+                    `<span class="who"></span><span class="secs">${r.elapsed}s</span>`;
+      b.querySelector('.who').textContent = r.label;
+      b.addEventListener('click', () => replay(r));
+      past.appendChild(b);
+    });
+  }
+
+  async function replay(r) {
+    if (!jobs.has(r.id)) {
+      let d;
+      try { d = await fetch(`/api/job/${r.id}?offset=0`).then(x => x.json()); }
+      catch (e) { say('Could not load that run.'); return; }
+      if (d.error) { say(d.error); return; }
+      jobs.set(r.id, {
+        id: r.id, label: d.label || r.label, skill: r.skill,
+        status: d.status, started: r.started, offset: d.offset || 0,
+        text: d.chunk || '', elapsed: d.elapsed,
+      });
+      prune();
+    }
+    say('');
+    view(r.id);
+    log.scrollTop = 0;
+    if (jobs.get(r.id).status === 'running') ensurePolling();
+  }
+
+  function submit() {
+    const typed = box.value.trim();
+    if (pending) {
+      if (!typed) { box.focus(); return; }
+      const p = `${pending.prompt} ${typed}`.trim();
+      const s = pending;
+      disarm();
+      box.value = '';
+      launch(s.skill, s.label, p);
+    } else {
+      if (!typed) return;
+      box.value = '';
+      launch('ad-hoc', typed.slice(0, 46), typed);
+    }
+    box.style.height = 'auto';
+  }
+
+  go.addEventListener('click', submit);
+
+  box.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); }
+    if (e.key === 'Escape') { disarm(); }
+  });
+
+  box.addEventListener('input', () => {
+    box.style.height = 'auto';
+    box.style.height = Math.min(box.scrollHeight, 160) + 'px';
+  });
+
+  kill.addEventListener('click', async () => {
+    const j = jobs.get(viewing);
+    if (!j || j.status !== 'running') return;
+    kill.disabled = true;
+    try { await fetch(`/api/stop/${j.id}`, { method: 'POST' }); }
+    catch (e) { say('Could not reach the server to stop that run.'); }
+    kill.disabled = false;
+  });
+
+  boot();
+})();
+</script>
+<script src="/nav.js" defer></script>
+</body>
+</html>

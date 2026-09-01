@@ -1,0 +1,95 @@
+/* NOVA theme tokens — the single source of truth for every page.
+ *
+ * The palette is lifted from the orbit comp, which is the main page: a cool
+ * near-black ground, warm off-white ink, warm grey for secondary text, and the
+ * orange accent. The light variant swaps to paper with the teal accent (at the
+ * AA-safe #05605a the orbit build already corrects to, not the comp's #0a7d74).
+ *
+ * The theme class is set on <html> by theme.js before first paint, and orbit
+ * additionally sets it on <body> through its own older toggle — both are
+ * honoured here so the two never disagree.
+ */
+
+:root {
+  --bg:        #04070d;
+  --panel:     #0e0d0b;
+  --panel-2:   #14120f;
+  --line:      rgba(255, 255, 255, .09);
+  --line-soft: rgba(255, 255, 255, .05);
+  --ink:       #f4efe6;
+  --ink-2:     rgba(244, 239, 230, .72);
+  --dim:       #8a8378;
+  --accent:    #ff7a1a;
+  --on-accent: #04070d;
+  --accent-wash: rgba(255, 122, 26, .12);
+  --ok:        #7ee08a;
+  --warn:      #ffc46b;
+  --bad:       #ff6b5e;
+  --lift:      0 4px 24px rgba(0, 0, 0, .28);
+  --shadow:    rgba(0, 0, 0, .55);
+  /* A deliberately inverted block — the console's core disc and its metric
+     cards. These read as dark chips in BOTH themes, the way the accent stays
+     orange in both, rather than flipping to a glaring pale disc. */
+  --block:     #1a1714;
+  --on-block:  #f4efe6;
+
+  --display: 'Michroma', 'Space Grotesk', system-ui, sans-serif;
+  --sans:    'Space Grotesk', -apple-system, 'Segoe UI', sans-serif;
+  --mono:    'JetBrains Mono', ui-monospace, Menlo, monospace;
+}
+
+:root.light,
+body.light {
+  --bg:        #e9e8e4;
+  --panel:     #f0efec;
+  --panel-2:   #e3e2dd;
+  --line:      rgba(0, 0, 0, .13);
+  --line-soft: rgba(0, 0, 0, .07);
+  --ink:       #2a2a28;
+  --ink-2:     rgba(42, 42, 40, .74);
+  --dim:       #5b5b56;
+  --accent:    #05605a;
+  --on-accent: #ffffff;
+  --accent-wash: rgba(11, 196, 180, .14);
+  --ok:        #1c7a43;
+  --warn:      #8a5a00;
+  --bad:       #a6291d;
+  --lift:      0 4px 20px rgba(0, 0, 0, .10);
+  --shadow:    rgba(20, 35, 60, .13);
+  --block:     #232e3c;
+  --on-block:  #ffffff;
+}
+
+/* The shared theme button, for pages that don't ship their own. Matches the
+   one the orbit comp draws, so moving between pages doesn't move the control. */
+#themeBtn {
+  /* Bottom-right, not top-right: every comp puts something in its top-right
+     corner (classic's clock, orbit's avatar), and a fixed button there lands
+     on top of it. Down here it sits clear of all of them and beside the nav. */
+  /* top:auto matters — the orbit shell sets top:16px on this same id, and
+     when both are given, top wins and the button stays in the corner. */
+  position: fixed; right: 16px; top: auto; bottom: 14px; z-index: 940;
+  font: 600 9px var(--mono); letter-spacing: .16em;
+  padding: 8px 12px; border-radius: 20px; cursor: pointer;
+  background: var(--accent-wash);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+#themeBtn:hover { filter: brightness(1.15); }
+#themeBtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* The injected nav bar picks the theme up too, rather than staying dark on a
+   light page. */
+#cc-nav {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: var(--lift);
+}
+#cc-nav a { color: var(--dim); }
+#cc-nav a:hover { color: var(--ink); background: var(--line-soft); }
+#cc-nav a[aria-current=page] { color: var(--on-accent); background: var(--accent); }
+#cc-nav a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
