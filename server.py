@@ -52,6 +52,29 @@ MAX_HISTORY = int(CONFIG.get("max_history", 25))
 # ceiling. The cap lives here rather than in the page because /api/run is a plain
 # endpoint -- a UI-only limit is a suggestion, not a limit.
 MAX_CONCURRENT_RUNS = int(CONFIG.get("max_concurrent_runs", 4))
+
+# Tool grants are per skill, not global. Every agent shares the read/write/search
+# allowlist in claude_args; anything beyond that is named here against one skill,
+# so widening it for the agent that needs it does not hand a shell to the other
+# seventeen on the rail.
+SKILL_TOOLS = CONFIG.get("skill_tools", {})
+
+
+def args_for(skill):
+    """claude_args, plus any tool this skill alone is granted."""
+    extra = [t for t in SKILL_TOOLS.get(skill or "", []) if isinstance(t, str) and t.strip()]
+    args = list(CLAUDE_ARGS)
+    if not extra:
+        return args
+    try:
+        i = args.index("--allowedTools")
+    except ValueError:
+        return args + ["--allowedTools"] + extra
+    # --allowedTools takes a variadic list; its values run until the next option.
+    j = i + 1
+    while j < len(args) and not args[j].startswith("--"):
+        j += 1
+    return args[:j] + extra + args[j:]
 ARCHIVE = bool(CONFIG.get("archive", True))
 ARCHIVE_DIR = CONFIG.get("archive_dir", "40 Daily/Runs")
 ATTACH_DIR = CONFIG.get("attachments_dir", "99 Assets/Attachments")
@@ -403,9 +426,15 @@ def run_job(job):
         job["ended"] = time.time()
         return
 
-    cmd = [CLAUDE_BIN, "-p", job["prompt"]] + CLAUDE_ARGS
+    granted = SKILL_TOOLS.get(job.get("skill") or "", [])
+    cmd = [CLAUDE_BIN, "-p", job["prompt"]] + args_for(job.get("skill"))
     append(job, f"$ cd {WORKDIR}\n")
-    append(job, f"$ {CLAUDE_BIN} -p \"{job['prompt'][:120]}\"\n\n")
+    append(job, f"$ {CLAUDE_BIN} -p \"{job['prompt'][:120]}\"\n")
+    # Say it in the log. A tool grant that only exists in config.json is a grant
+    # nobody reviews.
+    if granted:
+        append(job, f"  [extra tools for {job['skill']}: {', '.join(granted)}]\n")
+    append(job, "\n")
 
     env = os.environ.copy()
     extra_path = CONFIG.get("extra_path", [])

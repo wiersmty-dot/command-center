@@ -1,0 +1,77 @@
+#!/usr/bin/env python3
+"""Reserve a block of record IDs from the running Command Center.
+
+    cc-ids LED        -> one id
+    cc-ids LED 5      -> five consecutive ids, one per line
+
+This exists so one agent can reserve IDs without being handed a shell.
+The Product & AI Lab agent is granted `Bash(cc-ids:*)` and nothing else, so
+everything this script will ever be able to do is what is written here: it
+takes a prefix and a count, calls the local allocator, and prints ids.
+
+Deliberately rigid:
+  * the URL is fixed, so a prompt cannot redirect it at another host
+  * the prefix must be one of the known record types
+  * the count is bounded
+  * it never writes a file and never reads one
+"""
+
+import json
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+
+ENDPOINT = "http://127.0.0.1:7777/api/next-id"   # fixed on purpose
+PREFIXES = ("OPP", "EVD", "LED", "EXP", "PRT", "DEC")
+MAX_COUNT = 50
+
+
+def die(msg, code=1):
+    print(msg, file=sys.stderr)
+    raise SystemExit(code)
+
+
+def main(argv):
+    if not argv or argv[0] in ("-h", "--help"):
+        die(f"usage: cc-ids <{'|'.join(PREFIXES)}> [count]\n"
+            "Reserves record ids from the Command Center and prints them.", 2)
+
+    prefix = argv[0].strip().upper()
+    if prefix not in PREFIXES:
+        die(f"Unknown prefix {prefix!r}. Use one of: {', '.join(PREFIXES)}")
+
+    try:
+        count = int(argv[1]) if len(argv) > 1 else 1
+    except ValueError:
+        die(f"Count must be a whole number, not {argv[1]!r}")
+    if not 1 <= count <= MAX_COUNT:
+        die(f"Count must be between 1 and {MAX_COUNT}.")
+
+    url = f"{ENDPOINT}?{urllib.parse.urlencode({'prefix': prefix, 'count': count})}"
+    try:
+        with urllib.request.urlopen(url, timeout=15) as r:
+            body = json.loads(r.read().decode("utf-8", "replace"))
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", "replace")
+        try:
+            detail = json.loads(detail).get("error", detail)
+        except ValueError:
+            pass
+        # The allocator refuses rather than guessing when it cannot read the
+        # workspace. Pass that refusal through verbatim: an id invented here
+        # would collide with one already on disk.
+        die(f"The allocator refused: {detail}")
+    except urllib.error.URLError as exc:
+        die("Could not reach the Command Center on 127.0.0.1:7777. "
+            f"It may not be running. ({exc.reason})")
+
+    ids = body.get("ids") or []
+    if not ids:
+        die(f"No ids came back: {body.get('error', body)}")
+    print("\n".join(ids))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

@@ -11,6 +11,7 @@ runs.jsonl
 orbit-state.json
 orchestrations.json
 workspace-state.json
+record-ids.json
 
 # --- hand-rolled backups -----------------------------------------------------
 # server.py.bak-phase5-165103 and friends. This repository is what replaces
