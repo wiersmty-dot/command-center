@@ -21,16 +21,16 @@ body.light{background:#e9e8e4}
 .frame [data-hook="skill-name"]{cursor:pointer}
 #themeBtn{position:fixed;right:16px;top:16px;z-index:40;font:600 9px 'JetBrains Mono',monospace;
   letter-spacing:.16em;padding:8px 12px;border-radius:20px;cursor:pointer;
-  background:rgba(255,122,26,.14);color:#ff7a1a;border:1px solid rgba(255,122,26,.45)}
+  background:rgba(0,229,255,.14);color:#00e5ff;border:1px solid rgba(0,229,255,.45)}
 body.light #themeBtn{background:rgba(11,196,180,.12);color:#0a7d74;border-color:rgba(11,196,180,.5)}
 /* run output — the mock has no log surface, so this slides in when one starts */
 #runPanel{position:fixed;right:0;top:0;bottom:0;width:520px;max-width:92vw;z-index:50;
   transform:translateX(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1);
-  background:#04070d;border-left:1px solid rgba(255,122,26,.35);display:flex;flex-direction:column}
+  background:#04070d;border-left:1px solid rgba(0,229,255,.35);display:flex;flex-direction:column}
 body.light #runPanel{background:#f0efec;border-left-color:rgba(0,0,0,.18)}
 #runPanel.open{transform:none}
 #runHead{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.1);
-  font:600 10px 'JetBrains Mono',monospace;letter-spacing:.16em;color:#ff7a1a}
+  font:600 10px 'JetBrains Mono',monospace;letter-spacing:.16em;color:#00e5ff}
 body.light #runHead{color:#0a7d74;border-bottom-color:rgba(0,0,0,.12)}
 /* Several runs can be in flight now. The panel still shows one at a time -- it
    is a slide-over, not a workspace -- but starting a second no longer orphans
@@ -43,7 +43,7 @@ body.light #runTabs{border-bottom-color:rgba(0,0,0,.12)}
   cursor:pointer;background:none;border:1px solid rgba(255,255,255,.16);border-radius:4px;
   padding:4px 9px;font:600 9px 'JetBrains Mono',monospace;letter-spacing:.1em;
   color:rgba(232,246,250,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#runTabs button[data-on="1"]{border-color:#ff7a1a;color:#ff7a1a}
+#runTabs button[data-on="1"]{border-color:#00e5ff;color:#00e5ff}
 body.light #runTabs button{border-color:rgba(0,0,0,.18);color:#6c6c68}
 body.light #runTabs button[data-on="1"]{border-color:#0a7d74;color:#0a7d74}
 #runTabs .dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
@@ -90,11 +90,11 @@ body.light [data-hook="skill-card"]:hover{border-color:rgba(0,0,0,.35)}
   font:600 8px 'JetBrains Mono',monospace;letter-spacing:.1em;transition:opacity .12s}
 .cc-row:hover .cc-close,.cc-row:focus-within .cc-close{opacity:.75}
 .cc-close:hover{opacity:1!important}
-.cc-close:focus-visible{opacity:1!important;outline:2px solid #ff7a1a;outline-offset:1px}
+.cc-close:focus-visible{opacity:1!important;outline:2px solid #00e5ff;outline-offset:1px}
 .cc-add{cursor:pointer;background:transparent;border:0;color:inherit;opacity:.55;
   font:600 9px 'JetBrains Mono',monospace;letter-spacing:.12em;padding:0 0 0 8px}
 .cc-add:hover{opacity:1}
-.cc-add:focus-visible{opacity:1;outline:2px solid #ff7a1a;outline-offset:2px}
+.cc-add:focus-visible{opacity:1;outline:2px solid #00e5ff;outline-offset:2px}
 /* Ticking figures must not shift the layout under them. */
 [data-hook="time"],[data-hook="mail-total"],[data-hook="skill-status"],
 [data-hook="runtime"],.tnum{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
@@ -133,7 +133,7 @@ const say = v => SAY[v] || String(v).toUpperCase();
    description stay neutral. */
 /* Both copies of the screen are painted in one pass, so the neutral has to come
    from the screen being written to — not from whichever theme is on show. */
-const neutralFor = id => id === 'light' ? '#5b5b56' : 'rgba(244,239,230,.55)';
+const neutralFor = id => id === 'light' ? '#5b5b56' : 'rgba(232,246,250,.55)';
 
 /* ---------- theme ---------------------------------------------------- */
 const KEY = 'nova-theme';
@@ -540,7 +540,7 @@ function renderState(st) {
           const d = bt.cloneNode(true);
           const ramp = id === 'light'
             ? ['rgba(0,0,0,.55)','rgba(0,0,0,.42)','rgba(0,0,0,.30)','rgba(0,0,0,.20)','rgba(0,0,0,.12)']
-            : ['rgba(244,239,230,.60)','rgba(244,239,230,.45)','rgba(244,239,230,.33)','rgba(244,239,230,.22)','rgba(244,239,230,.13)'];
+            : ['rgba(232,246,250,.60)','rgba(232,246,250,.45)','rgba(232,246,250,.33)','rgba(232,246,250,.22)','rgba(232,246,250,.13)'];
           d.setAttribute('style', (styles[i] || styles[styles.length - 1])
             .replace(/flex:\d+/, 'flex:' + Math.max(1, b.count))
             .replace(/background:[^;"]+/, 'background:' + ramp[Math.min(i, 4)]));

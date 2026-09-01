@@ -65,6 +65,32 @@ def extract(doc, label):
 ORBIT_COLORS = {"#0a7d74": "#05605a"}
 
 
+# Turn 1a "Mission Control" — the JARVIS-style screen — is the palette this
+# dashboard was always meant to wear. It carries no data-screen-label, so
+# extract() cannot reach it, and its layout (nav rail + copilot column) is not
+# 3a's. So rather than rebuild the layout we repaint 3a in 1a's colours. 3a is
+# a tight seven-colour comp, so this map is complete, not approximate — every
+# value was read out of the design doc, none estimated.
+JARVIS_COLORS = {
+    # hex — warm orange ground -> cool cyan HUD
+    "#ff7a1a": "#00e5ff",          # accent
+    "#ffa15c": "#7df3ff",          # accent, lifted
+    "#8a8378": "#5f8b99",          # dim label grey, warm -> cool
+    "#f4efe6": "#e8f6fa",          # ink
+    "#7ee08a": "#3dffa0",          # ok
+    "#0a0907": "#04070d",          # page ground
+    "#140d06": "#0a0e14",          # panel ground
+    # rgba families — prefix only, so every alpha in the comp comes along
+    "rgba(255,122,26,":  "rgba(0,229,255,",
+    "rgba(244,239,230,": "rgba(232,246,250,",
+    "rgba(14,12,10,":    "rgba(4,7,13,",
+    "rgba(255,180,90,":  "rgba(255,180,84,",
+    "rgba(120,80,200,":  "rgba(180,139,255,",
+    # rgba(255,255,255,a) and rgba(0,0,0,a) are neutral scrims: left alone, or
+    # every hairline and shadow in the comp would turn cyan too.
+}
+
+
 def clean(html):
     # dc-runtime authoring attributes with no meaning in a plain browser
     html = re.sub(r'\s+style-hover="[^"]*"', "", html)
@@ -124,7 +150,8 @@ def add_hooks(html):
 
 def main():
     doc = open(SRC, encoding="utf-8").read()
-    dark = fix_type(add_hooks(clean(extract(doc, "3a Nova refined"))))
+    dark = fix_colors(fix_type(add_hooks(clean(extract(doc, "3a Nova refined")))),
+                      JARVIS_COLORS)
     light = fix_colors(fix_type(add_hooks(clean(extract(doc, "4a Nova light")))), ORBIT_COLORS)
     # the inbox count was the largest number on the page; decisions matter more
     light = light.replace("font:700 58px", "font:700 34px")
