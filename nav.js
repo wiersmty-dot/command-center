@@ -14,19 +14,19 @@
   // the labels a comp might already have drawn as text, so AGENTS (which no
   // comp drew) is appended rather than promoted.
   const ROUTES = [
-    ['ORBIT',   '/'],
+    ['ORBIT',   '/orbit'],
     ['BOARD',   '/board'],
     ['RUNS',    '/runs'],
     ['VAULT',   '/vault'],
     ['CLASSIC', '/classic'],
   ];
-  const ALL = ROUTES.concat([['MISSION', '/mission'], ['AGENTS', '/agents'], ['OUTBOX', '/outbox']]);
+  const ALL = ROUTES.concat([['MISSION', '/'], ['AGENTS', '/agents'], ['OUTBOX', '/outbox']]);
   const HREF = new Map(ROUTES);
 
   // which page are we on — used to mark the active item
   const path = location.pathname.replace(/\/+$/, '') || '/';
   const ACTIVE = ({
-    '/': 'ORBIT', '/orbit': 'ORBIT', '/orbit.html': 'ORBIT',
+    '/': 'MISSION', '/orbit': 'ORBIT', '/orbit.html': 'ORBIT',
     '/venture': 'BOARD', '/board': 'BOARD', '/venture.html': 'BOARD',
     '/runs': 'RUNS', '/vault': 'VAULT',
     '/classic': 'CLASSIC', '/dashboard.html': 'CLASSIC',

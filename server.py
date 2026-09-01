@@ -2304,8 +2304,12 @@ class Handler(BaseHTTPRequestHandler):
         route = parsed.path
         query = parse_qs(parsed.query)
 
-        # the Jarvis Dashboards design is the home page; build-orbit.py makes it
-        if route in ("/", "/index.html", "/orbit", "/orbit.html"):
+        # Mission Control (design turn 1a) is the home page. The orbital view
+        # that used to hold "/" keeps its own route rather than being retired.
+        if route in ("/", "/index.html", "/mission", "/mission.html"):
+            return self.send_file("mission.html", "text/html; charset=utf-8")
+
+        if route in ("/orbit", "/orbit.html"):
             return self.send_file("orbit.html", "text/html; charset=utf-8")
 
         # Classic is the review surface; keep dashboard.html available as the
@@ -2326,10 +2330,6 @@ class Handler(BaseHTTPRequestHandler):
 
         if route in ("/outbox", "/outbox.html"):
             return self.send_file("outbox.html", "text/html; charset=utf-8")
-
-        # Mission Control — design turn 1a, rebuilt against the live API.
-        if route in ("/mission", "/mission.html"):
-            return self.send_file("mission.html", "text/html; charset=utf-8")
 
         if route in ("/vault", "/vault.html"):
             return self.send_file("vault.html", "text/html; charset=utf-8")
