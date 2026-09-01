@@ -147,6 +147,35 @@ a.tile:hover .stat-go,a.tile:focus-visible .stat-go{opacity:1}
   transition:background var(--mid) var(--ease)}
 .link:hover{background:oklch(0.82 0.13 215 / 24%)}
 
+.ask{display:flex;flex-direction:column;gap:9px}
+.ask-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ask label{font:600 11px 'JetBrains Mono',monospace;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--dim)}
+.ask textarea{width:100%;min-height:66px;resize:vertical;padding:10px 11px;border-radius:6px;
+  border:1px solid oklch(0.82 0.13 215 / 38%);background:oklch(0.30 0.06 235 / 12%);
+  color:var(--ink);font:400 14px/1.5 'Rajdhani',system-ui,sans-serif}
+:root.light .ask textarea,body.light .ask textarea{background:oklch(1 0 0 / 70%)}
+.ask textarea::placeholder{color:var(--dim)}
+.ask select{min-height:32px;padding:0 8px;border-radius:6px;
+  border:1px solid oklch(0.82 0.13 215 / 38%);background:oklch(0.30 0.06 235 / 12%);
+  color:var(--ink);font:600 11px 'JetBrains Mono',monospace;letter-spacing:.08em}
+:root.light .ask select,body.light .ask select{background:oklch(1 0 0 / 70%)}
+.ask button{min-height:32px;padding:0 14px;border-radius:999px;cursor:pointer;
+  border:1px solid oklch(0.82 0.13 215 / 55%);background:oklch(0.82 0.13 215 / 14%);
+  color:var(--cy);font:600 11px 'JetBrains Mono',monospace;letter-spacing:.12em;
+  text-transform:uppercase;transition:background var(--mid) var(--ease)}
+.ask button:hover:not(:disabled){background:oklch(0.82 0.13 215 / 26%)}
+.ask button:disabled{opacity:.45;cursor:not-allowed}
+.ask button[data-stop]{border-color:oklch(0.70 0.18 25 / 60%);
+  background:oklch(0.70 0.18 25 / 14%);color:var(--coral)}
+.ask :is(textarea,select,button):focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+.ask-state{font:600 11px 'JetBrains Mono',monospace;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--dim)}
+.ask-out{margin:0;max-height:230px;overflow:auto;padding:10px 11px;border-radius:6px;
+  background:oklch(0.30 0.06 235 / 14%);border:1px solid oklch(0.82 0.13 215 / 18%);
+  font:400 12px/1.55 'JetBrains Mono',monospace;color:var(--ink-2);
+  white-space:pre-wrap;word-break:break-word}
+:root.light .ask-out,body.light .ask-out{background:oklch(1 0 0 / 62%)}
 .empty{padding:10px 0 4px;font-size:14px;line-height:1.55;color:var(--ink-2)}
 .empty b{display:block;margin-bottom:5px;font:600 11px 'JetBrains Mono',monospace;
   letter-spacing:.16em;text-transform:uppercase;color:var(--amber)}
@@ -206,6 +235,7 @@ a.tile:hover .stat-go,a.tile:focus-visible .stat-go{opacity:1}
       <section class="tile" id="t-today"></section>
     </div>
     <div class="hud-col">
+      <section class="tile tile--lifted" id="t-ask"></section>
       <section class="tile" id="t-agents"></section>
       <section class="tile" id="t-activity"></section>
       <section class="tile tile--ghost tile--amber" id="t-nosource"></section>
@@ -325,10 +355,113 @@ a.tile:hover .stat-go,a.tile:focus-visible .stat-go{opacity:1}
         <a class="link" href="http://localhost:8080/dashboard">Open Daily Hub</a></div>`;
   };
 
-  (async () => {
+  /* Composer — the one piece of turn 1a that was left read-only.
+     Contract, taken from the orbit view rather than invented:
+       POST /api/run  {prompt, skill?, label?}  -> job_view
+       GET  /api/job/<id>?offset=N              -> {chunk, offset, status, ...}
+       POST /api/stop/<id>                      -> {ok:true}
+     The server answers 400 on an empty prompt and 429 over the concurrency
+     limit, both with a written reason; those are surfaced verbatim rather
+     than replaced with a generic failure. */
+  let job = null, timer = null;
+
+  const askEls = () => ({
+    form: $('#ask-form'), ta: $('#ask-text'), sel: $('#ask-skill'),
+    run: $('#ask-run'), stop: $('#ask-stop'),
+    state: $('#ask-state'), out: $('#ask-out'),
+  });
+
+  const setBusy = busy => {
+    const e = askEls();
+    e.run.disabled = busy;
+    e.run.textContent = busy ? 'Running…' : 'Run';
+    e.stop.hidden = !busy;
+    e.ta.readOnly = busy;
+  };
+
+  const poll = async () => {
+    const e = askEls();
+    const r = await fetch(`/api/job/${encodeURIComponent(job.id)}?offset=${job.offset || 0}`)
+      .then(x => x.json()).catch(() => null);
+    if (!r || r.error) { e.state.textContent = r?.error || 'Lost the run'; setBusy(false); return; }
+    job.offset = r.offset;
+    if (r.chunk) { e.out.textContent += r.chunk; e.out.scrollTop = e.out.scrollHeight; }
+    e.state.textContent = `${r.status} · ${r.elapsed}s`;
+    if (r.status === 'running') { timer = setTimeout(poll, 900); return; }
+    setBusy(false);
+    timer = null;
+    if (r.note) e.state.textContent += ` · ${r.note}`;
+    load();                       // a finished run changes the counts above
+  };
+
+  const submit = async ev => {
+    ev.preventDefault();
+    const e = askEls();
+    const prompt = e.ta.value.trim();
+    if (!prompt) { e.state.textContent = 'Nothing to run'; e.ta.focus(); return; }
+    setBusy(true);
+    e.out.textContent = '';
+    e.state.textContent = 'Starting…';
+    try {
+      const res = await fetch('/api/run', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt,
+          skill: e.sel.value || 'ad-hoc',
+          label: e.sel.value ? e.sel.selectedOptions[0].textContent : 'Ad-hoc request',
+        }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) { e.state.textContent = body.error || `Run failed (${res.status})`; setBusy(false); return; }
+      job = { id: body.id, offset: body.offset || 0 };
+      if (body.chunk) e.out.textContent = body.chunk;
+      poll();
+    } catch (err) { e.state.textContent = 'Could not reach the server'; setBusy(false); }
+  };
+
+  const stop = async () => {
+    if (!job) return;
+    if (timer) { clearTimeout(timer); timer = null; }
+    await fetch(`/api/stop/${encodeURIComponent(job.id)}`, { method: 'POST' }).catch(() => {});
+    askEls().state.textContent = 'Stopped';
+    setBusy(false);
+  };
+
+  const renderAsk = d => {
+    const skills = (d.con?.skillList || []).slice().sort((a, b) =>
+      String(a.label).localeCompare(String(b.label)));
+    $('#t-ask').innerHTML = head('Ask Nova', '', 'live') + `
+      <div class="tile-body">
+        <form class="ask" id="ask-form">
+          <label for="ask-text">What do you want me to move forward?</label>
+          <textarea id="ask-text" placeholder="Describe the work, or pick a skill and give it a prompt."></textarea>
+          <div class="ask-row">
+            <select id="ask-skill" aria-label="Skill to run">
+              <option value="">Ad-hoc (no skill)</option>
+              ${skills.map(s => `<option value="${esc(s.skill)}">${esc(s.label)}</option>`).join('')}
+            </select>
+            <button type="submit" id="ask-run">Run</button>
+            <button type="button" id="ask-stop" data-stop hidden>Stop</button>
+            <span class="ask-state" id="ask-state" role="status" aria-live="polite"></span>
+          </div>
+        </form>
+        <pre class="ask-out" id="ask-out" aria-live="polite" aria-label="Run output"></pre>
+      </div>`;
+    askEls().form.addEventListener('submit', submit);
+    askEls().stop.addEventListener('click', stop);
+  };
+
+  /* One loader, so a finished run can refresh the counts without a reload.
+     The composer is only rebuilt on first paint — re-rendering it mid-session
+     would wipe whatever is in the textarea. */
+  let askDrawn = false;
+  async function load() {
     const [con, vent, hist, agenda, notif] = await Promise.all([
       api('/api/console', {}), api('/api/venture', {}),
       api('/api/history?limit=12', {}), api('/api/agenda', {}), api('/api/notifications', {})]);
-    render({ con, vent, hist, agenda, notif });
-  })();
+    const d = { con, vent, hist, agenda, notif };
+    render(d);
+    if (!askDrawn) { renderAsk(d); askDrawn = true; }
+  }
+  load();
 })();
