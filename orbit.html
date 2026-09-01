@@ -30,7 +30,7 @@ body.light{background:#e9e8e4}
 .frame{width:1440px;flex:none;transform-origin:top center}
 /* hover states the design expressed as style-hover attributes */
 .frame [data-hook="skill-name"]{cursor:pointer}
-#themeBtn{position:fixed;right:16px;top:16px;z-index:40;font:600 9px 'JetBrains Mono',monospace;
+#themeBtn{position:fixed;right:16px;top:16px;z-index:40;font:600 11px 'JetBrains Mono',monospace;
   letter-spacing:.16em;padding:8px 12px;border-radius:20px;cursor:pointer;
   background:rgba(0,229,255,.14);color:#00e5ff;border:1px solid rgba(0,229,255,.45)}
 body.light #themeBtn{background:rgba(11,196,180,.12);color:#0a7d74;border-color:rgba(11,196,180,.5)}
@@ -41,7 +41,7 @@ body.light #themeBtn{background:rgba(11,196,180,.12);color:#0a7d74;border-color:
 body.light #runPanel{background:#f0efec;border-left-color:rgba(0,0,0,.18)}
 #runPanel.open{transform:none}
 #runHead{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.1);
-  font:600 10px 'JetBrains Mono',monospace;letter-spacing:.16em;color:#00e5ff}
+  font:600 11px 'JetBrains Mono',monospace;letter-spacing:.16em;color:#00e5ff}
 body.light #runHead{color:#0a7d74;border-bottom-color:rgba(0,0,0,.12)}
 /* Several runs can be in flight now. The panel still shows one at a time -- it
    is a slide-over, not a workspace -- but starting a second no longer orphans
@@ -52,7 +52,7 @@ body.light #runTabs{border-bottom-color:rgba(0,0,0,.12)}
 #runTabs[hidden]{display:none}
 #runTabs button{flex:none;max-width:200px;display:inline-flex;align-items:center;gap:6px;
   cursor:pointer;background:none;border:1px solid rgba(255,255,255,.16);border-radius:4px;
-  padding:4px 9px;font:600 9px 'JetBrains Mono',monospace;letter-spacing:.1em;
+  padding:4px 9px;font:600 11px 'JetBrains Mono',monospace;letter-spacing:.1em;
   color:rgba(232,246,250,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #runTabs button[data-on="1"]{border-color:#00e5ff;color:#00e5ff}
 body.light #runTabs button{border-color:rgba(0,0,0,.18);color:#6c6c68}
@@ -65,7 +65,7 @@ body.light #runTabs button[data-on="1"]{border-color:#0a7d74;color:#0a7d74}
 #runLog{flex:1;overflow:auto;padding:16px 18px;white-space:pre-wrap;word-break:break-word;
   font:400 12px/1.6 'JetBrains Mono',monospace;color:rgba(232,246,250,.8)}
 body.light #runLog{color:#2a2a28}
-#runClose,#runStop{margin-left:auto;cursor:pointer;font:600 9px 'JetBrains Mono',monospace;
+#runClose,#runStop{margin-left:auto;cursor:pointer;padding:9px 10px;margin-top:-9px;margin-bottom:-9px;font:600 11px 'JetBrains Mono',monospace;
   letter-spacing:.14em;color:rgba(232,246,250,.55);background:none;border:0}
 body.light #runClose,body.light #runStop{color:#6c6c68}
 /* the command bar is the most-used control: give it a real focus state and a
@@ -98,12 +98,12 @@ body.light [data-hook="skill-card"]:hover{border-color:rgba(0,0,0,.35)}
 .cc-close{position:absolute;right:-2px;top:2px;z-index:3;cursor:pointer;
   background:transparent;border:1px solid currentColor;border-radius:999px;
   color:inherit;opacity:0;padding:1px 6px;line-height:1.5;
-  font:600 8px 'JetBrains Mono',monospace;letter-spacing:.1em;transition:opacity .12s}
+  font:600 11px 'JetBrains Mono',monospace;letter-spacing:.1em;transition:opacity .12s}
 .cc-row:hover .cc-close,.cc-row:focus-within .cc-close{opacity:.75}
 .cc-close:hover{opacity:1!important}
 .cc-close:focus-visible{opacity:1!important;outline:2px solid #00e5ff;outline-offset:1px}
 .cc-add{cursor:pointer;background:transparent;border:0;color:inherit;opacity:.55;
-  font:600 9px 'JetBrains Mono',monospace;letter-spacing:.12em;padding:0 0 0 8px}
+  font:600 11px 'JetBrains Mono',monospace;letter-spacing:.12em;padding:0 0 0 8px}
 .cc-add:hover{opacity:1}
 .cc-add:focus-visible{opacity:1;outline:2px solid #00e5ff;outline-offset:2px}
 /* Ticking figures must not shift the layout under them. */
