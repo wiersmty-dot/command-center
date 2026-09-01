@@ -176,6 +176,12 @@ a.tile:hover .stat-go,a.tile:focus-visible .stat-go{opacity:1}
   font:400 12px/1.55 'JetBrains Mono',monospace;color:var(--ink-2);
   white-space:pre-wrap;word-break:break-word}
 :root.light .ask-out,body.light .ask-out{background:oklch(1 0 0 / 62%)}
+.missing{margin:0 0 11px;padding:0;list-style:none}
+.missing li{padding:8px 0;border-top:1px solid oklch(0.82 0.13 215 / 16%)}
+.missing li:first-child{border-top:0;padding-top:2px}
+.missing b{display:block;margin-bottom:3px;font:600 11px 'JetBrains Mono',monospace;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--amber)}
+.missing span{font-size:13px;line-height:1.45;color:var(--ink-2)}
 .empty{padding:10px 0 4px;font-size:14px;line-height:1.55;color:var(--ink-2)}
 .empty b{display:block;margin-bottom:5px;font:600 11px 'JetBrains Mono',monospace;
   letter-spacing:.16em;text-transform:uppercase;color:var(--amber)}
@@ -366,14 +372,22 @@ a.tile:hover .stat-go,a.tile:focus-visible .stat-go{opacity:1}
           </div>`).join('')
         : '<p class="empty"><b>No decisions</b>The mirror is reachable but empty.</p>'}</div>`;
 
-    /* What is left genuinely has no source anywhere reachable: no monetary
-       column exists in any project, and the Daily Hub's own backend
-       (tahcaxproneflplykisy) is paused. Named rather than mocked or hidden. */
-    $('#t-nosource').innerHTML = head('Not connected', '4 tiles', 'warn') +
-      `<div class="tile-body"><p class="empty"><b>No source anywhere reachable</b>
-        Revenue and pipeline have no monetary column in any Supabase project.
-        Weather, fitness and home controls live in the Daily Hub's backend,
-        which is currently paused.</p>
+    /* Each of these was checked against a source, not assumed. The reason
+       differs per tile and the differences matter: "no column exists" is a
+       data-model gap, "fetched live and never stored" means there is nothing
+       to read, and "one row from May" is a table that exists but is dead. A
+       single vague "not connected" would flatten all three into one wrong
+       impression. */
+    const MISSING = [
+      ['Revenue · pipeline', 'No monetary column in any Supabase project.'],
+      ['Weather', 'No table — the Hub fetches it live and stores nothing.'],
+      ['Home controls', 'OAuth state only; no device records.'],
+      ['Fitness', 'One workout row, last written 30 May 2026.'],
+    ];
+    $('#t-nosource').innerHTML = head('Checked · no source', `${MISSING.length} tiles`, 'warn') +
+      `<div class="tile-body">
+        <ul class="missing">${MISSING.map(([k, why]) => `
+          <li><b>${esc(k)}</b><span>${esc(why)}</span></li>`).join('')}</ul>
         <a class="link" href="http://localhost:8080/dashboard">Open Daily Hub</a></div>`;
   };
 
