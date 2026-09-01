@@ -843,6 +843,37 @@ def outbox_items():
     return out, err
 
 
+# Anything that changes a record or starts work gets a line. Read-only GETs do
+# not: the dashboard polls a running job twice a second and would drown this.
+#
+# ⚠️ Written after 25 drafts were approved in eleven seconds and nothing on this
+# machine could say what had called the endpoint. The stamps were correct and
+# nobody was contacted, but "the workspace changed and there is no record of who
+# asked" is not a state this server should be able to reach.
+AUDITED = {
+    "/api/outbox/decide": ("dir", "name", "decision"),
+    "/api/venture/decision": ("opportunityId", "decision", "dispatch"),
+    "/api/run": ("skill", "label"),
+    "/api/stop": (),
+    "/api/agents": ("skill", "label"),
+}
+
+
+def audit(route, data, referer=None, agent=None):
+    fields = AUDITED.get(route)
+    if fields is None:
+        for prefix, f in AUDITED.items():
+            if route.startswith(prefix + "/"):
+                fields = f
+                break
+    if fields is None:
+        return
+    bits = " ".join(f"{k}={str(data.get(k))[:60]!r}" for k in fields if data.get(k) is not None)
+    where = f" via {referer}" if referer else ""
+    who = f" [{(agent or '')[:40]}]" if agent else ""
+    print(f"[audit] {time.strftime('%Y-%m-%d %H:%M:%S')} {route} {bits}{where}{who}")
+
+
 def outbox_decide(data):
     """Approve or reject one draft: stamp the file, and log the decision."""
     name = (data.get("name") or "").strip()
@@ -2241,6 +2272,9 @@ class Handler(BaseHTTPRequestHandler):
     server_version = "CommandCenter/1.0"
 
     def log_message(self, fmt, *args):
+        # Request logging is off on purpose: every poll of a running job would
+        # otherwise bury the log. State-changing POSTs are recorded by audit()
+        # instead -- see the note there.
         pass
 
     def send_json(self, payload, code=200):
@@ -2467,6 +2501,8 @@ class Handler(BaseHTTPRequestHandler):
             data = json.loads(self.rfile.read(length) or b"{}")
         except json.JSONDecodeError:
             return self.send_json({"error": "bad request body"}, 400)
+
+        audit(route, data, self.headers.get("Referer"), self.headers.get("User-Agent"))
 
         if route == "/api/agents":
             payload, code = create_agent(data)
