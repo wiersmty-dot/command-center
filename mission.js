@@ -238,6 +238,7 @@ a.tile:hover .stat-go,a.tile:focus-visible .stat-go{opacity:1}
       <section class="tile tile--lifted" id="t-ask"></section>
       <section class="tile" id="t-agents"></section>
       <section class="tile" id="t-activity"></section>
+      <section class="tile" id="t-decisions"></section>
       <section class="tile tile--ghost tile--amber" id="t-nosource"></section>
     </div>
   </main>
@@ -344,14 +345,35 @@ a.tile:hover .stat-go,a.tile:focus-visible .stat-go{opacity:1}
           <span class="chip" data-t="${r.status === 'done' ? 'go' : r.status === 'running' ? 'live' : 'warn'}">${esc(r.status)}</span></div>`).join('')
         : '<p class="empty"><b>No runs</b>Nothing recorded yet.</p>'}</div>`;
 
-    /* The Daily Hub dashboard also carries revenue, pipeline, weather, fitness
-       and home tiles. None has a source on this server, so they are declared
-       missing rather than mocked or quietly dropped. */
-    $('#t-nosource').innerHTML = head('Not connected', '5 tiles', 'warn') +
-      `<div class="tile-body"><p class="empty"><b>No source on this server</b>
-        Revenue, pipeline, weather, fitness and home controls are Daily Hub
-        modules reading Supabase and Google, which this server does not reach.
-        Wire a source and each becomes one entry in STATS.</p>
+    /* Decision log — read back from the Supabase projection. The local
+       venture-state cache holds 16 decisions across 3 opportunities; the
+       mirror holds 34 across 4, today's included. So this tile shows the
+       Command Center something it could not otherwise see. */
+    const dec = d.dec || {};
+    const rows = dec.decisions || [];
+    $('#t-decisions').innerHTML =
+      head('Decision log', rows.length ? `${dec.count} · via supabase` : 'via supabase',
+           dec.error ? 'warn' : 'live') +
+      `<div class="tile-body">${dec.error
+        ? `<p class="empty"><b>Mirror unreachable</b>${esc(dec.error)}</p>`
+        : rows.length ? rows.slice(0, 6).map(r => `
+          <div class="row">
+            <div class="row-time">${esc(String(r.decided_on || '').slice(5))}</div>
+            <div class="row-main">
+              <div class="row-title">${esc(r.decision || '—')}</div>
+              <div class="row-sub">${esc(r.opportunity || '')}${r.owner ? ' · ' + esc(r.owner) : ''}</div>
+            </div>
+          </div>`).join('')
+        : '<p class="empty"><b>No decisions</b>The mirror is reachable but empty.</p>'}</div>`;
+
+    /* What is left genuinely has no source anywhere reachable: no monetary
+       column exists in any project, and the Daily Hub's own backend
+       (tahcaxproneflplykisy) is paused. Named rather than mocked or hidden. */
+    $('#t-nosource').innerHTML = head('Not connected', '4 tiles', 'warn') +
+      `<div class="tile-body"><p class="empty"><b>No source anywhere reachable</b>
+        Revenue and pipeline have no monetary column in any Supabase project.
+        Weather, fitness and home controls live in the Daily Hub's backend,
+        which is currently paused.</p>
         <a class="link" href="http://localhost:8080/dashboard">Open Daily Hub</a></div>`;
   };
 
@@ -456,10 +478,11 @@ a.tile:hover .stat-go,a.tile:focus-visible .stat-go{opacity:1}
      would wipe whatever is in the textarea. */
   let askDrawn = false;
   async function load() {
-    const [con, vent, hist, agenda, notif] = await Promise.all([
+    const [con, vent, hist, agenda, notif, dec] = await Promise.all([
       api('/api/console', {}), api('/api/venture', {}),
-      api('/api/history?limit=12', {}), api('/api/agenda', {}), api('/api/notifications', {})]);
-    const d = { con, vent, hist, agenda, notif };
+      api('/api/history?limit=12', {}), api('/api/agenda', {}),
+      api('/api/notifications', {}), api('/api/decisions', {})]);
+    const d = { con, vent, hist, agenda, notif, dec };
     render(d);
     if (!askDrawn) { renderAsk(d); askDrawn = true; }
   }

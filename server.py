@@ -22,6 +22,8 @@ import uuid
 from datetime import datetime, timedelta, time as clock_time
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
+import urllib.request
+import urllib.error
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 
@@ -43,6 +45,59 @@ def save_json(name, payload):
 
 
 CONFIG = load_json("config.json", {})
+
+
+# --- Supabase read-back ----------------------------------------------------
+# mirror.py projects the vault INTO Postgres and is explicit that nothing reads
+# back into the workspace. This does not: it is display-only, and never writes.
+# It exists because the projection has turned out to hold more than the local
+# cache does -- venture-state.json carries 16 decisions where the mirror has 34,
+# including a fourth opportunity and today's activity.
+#
+# The service key stays here. It is never handed to the browser; the page calls
+# this endpoint and this endpoint calls PostgREST.
+SUPABASE_CACHE = {"at": 0, "payload": None}
+SUPABASE_TTL = 60
+
+
+def supabase_read(path, timeout=8):
+    """One read-only PostgREST GET. Returns rows, or raises with a reason."""
+    cfg = CONFIG.get("supabase", {})
+    url, key = (cfg.get("url") or "").rstrip("/"), cfg.get("service_key")
+    if not url or not key:
+        raise RuntimeError("no supabase credentials in config.json")
+    req = urllib.request.Request(
+        f"{url}/rest/v1/{path}",
+        headers={"apikey": key, "Authorization": f"Bearer {key}",
+                 "Accept": "application/json"},
+        method="GET",
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.loads(r.read() or b"[]")
+
+
+def decisions_payload():
+    """Decision history from the mirror, with the failure surfaced rather than
+    swallowed -- a paused Supabase project must not look like an empty log."""
+    now = time.time()
+    if SUPABASE_CACHE["payload"] and now - SUPABASE_CACHE["at"] < SUPABASE_TTL:
+        return SUPABASE_CACHE["payload"]
+    try:
+        rows = supabase_read(
+            "decisions?select=id,decided_on,opportunity,decision,scope,owner"
+            "&order=decided_on.desc&limit=40")
+        payload = {"decisions": rows, "count": len(rows), "source": "supabase",
+                   "error": None}
+    except urllib.error.URLError as exc:
+        payload = {"decisions": [], "count": 0, "source": "supabase",
+                   "error": f"Supabase unreachable ({getattr(exc, 'reason', exc)}). "
+                            "The project pauses on inactivity."}
+    except Exception as exc:
+        payload = {"decisions": [], "count": 0, "source": "supabase",
+                   "error": str(exc)}
+    SUPABASE_CACHE.update(at=now, payload=payload)
+    return payload
+
 CLAUDE_BIN = CONFIG.get("claude_bin", "claude")
 CLAUDE_ARGS = CONFIG.get("claude_args", [])
 WORKDIR = os.path.expanduser(CONFIG.get("workdir", "~"))
@@ -2398,6 +2453,9 @@ class Handler(BaseHTTPRequestHandler):
 
         if route == "/api/notifications":
             return self.send_json(notifications_payload())
+
+        if route == "/api/decisions":
+            return self.send_json(decisions_payload())
 
         if route == "/api/history":
             limit = int(query.get("limit", ["200"])[0])
