@@ -2327,6 +2327,10 @@ class Handler(BaseHTTPRequestHandler):
         if route in ("/outbox", "/outbox.html"):
             return self.send_file("outbox.html", "text/html; charset=utf-8")
 
+        # Mission Control — design turn 1a, rebuilt against the live API.
+        if route in ("/mission", "/mission.html"):
+            return self.send_file("mission.html", "text/html; charset=utf-8")
+
         if route in ("/vault", "/vault.html"):
             return self.send_file("vault.html", "text/html; charset=utf-8")
 
@@ -2335,6 +2339,9 @@ class Handler(BaseHTTPRequestHandler):
 
         if route == "/theme.js":
             return self.send_file("theme.js", "application/javascript")
+
+        if route == "/mission.js":
+            return self.send_file("mission.js", "application/javascript")
 
         if route == "/theme.css":
             return self.send_file("theme.css", "text/css; charset=utf-8")

@@ -20,7 +20,7 @@
     ['VAULT',   '/vault'],
     ['CLASSIC', '/classic'],
   ];
-  const ALL = ROUTES.concat([['AGENTS', '/agents'], ['OUTBOX', '/outbox']]);
+  const ALL = ROUTES.concat([['MISSION', '/mission'], ['AGENTS', '/agents'], ['OUTBOX', '/outbox']]);
   const HREF = new Map(ROUTES);
 
   // which page are we on — used to mark the active item
@@ -32,6 +32,7 @@
     '/classic': 'CLASSIC', '/dashboard.html': 'CLASSIC',
     '/agents': 'AGENTS', '/console': 'AGENTS',
     '/outbox': 'OUTBOX',
+    '/mission': 'MISSION', '/mission.html': 'MISSION',
   })[path] || '';
 
   /* Promote an existing label element to a real link, keeping its look. */
