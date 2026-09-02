@@ -1,0 +1,146 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>B — Lanes</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* DIRECTION B — "Lanes".
+   Your words: ventures are rows, not sections. Every stream is one line across
+   the full width, and the columns are always in the same place, so you scan
+   down a column rather than reading a page. Nothing is a card. Colour is
+   reserved for state; it is never decoration. */
+:root{
+  --bg:#0b0c0e; --sheet:#111316; --ink:#e9eaec; --ink-2:#a2a6ad; --dim:#6b7078;
+  --line:#1e2126; --line-2:#282c33; --accent:#7c8cf8;
+  --wait:#e0a33c; --live:#4fb783; --bad:#e0685a; --none:#4a4f57;
+  --sans:'Inter Tight',system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:light){:root:not([data-t="dark"]){
+  --bg:#f7f8f9; --sheet:#fff; --ink:#14161a; --ink-2:#4a505a; --dim:#767d88;
+  --line:#e6e8ec; --line-2:#d6dae1; --accent:#4d5fe0;
+  --wait:#96650a; --live:#1d7a52; --bad:#b23f31; --none:#9aa1ab;}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:14px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px 90px}
+
+/* ---- one thin bar, not a masthead ---- */
+.bar{display:flex;align-items:center;gap:18px;padding:16px 0 14px;
+  border-bottom:1px solid var(--line);flex-wrap:wrap}
+.bar h1{font-size:15px;font-weight:600;margin:0;letter-spacing:-.01em}
+.bar .date{font:500 11px var(--mono);color:var(--dim);letter-spacing:.06em}
+.counts{margin-left:auto;display:flex;gap:16px;font:500 12px var(--mono)}
+.counts b{font-weight:600}
+.counts .c-wait b{color:var(--wait)} .counts .c-live b{color:var(--live)}
+.counts span{color:var(--dim)}
+
+h2{font:600 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);
+  margin:30px 0 8px}
+
+/* ---- the lane grid ---- */
+.lanes{border:1px solid var(--line);border-radius:7px;overflow:hidden;background:var(--sheet)}
+.lane,.lane-head{display:grid;grid-template-columns:1.6fr 108px 1fr 88px;gap:16px;
+  align-items:center;padding:12px 15px;border-bottom:1px solid var(--line)}
+.lane-head{background:transparent;padding-top:9px;padding-bottom:9px;
+  font:600 10px var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--dim)}
+.lane:last-child{border-bottom:0}
+.lane:hover{background:color-mix(in srgb,var(--accent) 5%,transparent)}
+.nm{font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;gap:9px;min-width:0}
+.nm small{font:500 11px var(--mono);color:var(--dim);font-weight:400}
+.pip{width:6px;height:6px;border-radius:50%;flex:none;background:var(--none)}
+.pip.wait{background:var(--wait)} .pip.live{background:var(--live)} .pip.ok{background:var(--accent)}
+.state{font:600 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;
+  padding:3px 8px;border-radius:3px;border:1px solid var(--line-2);color:var(--ink-2);
+  justify-self:start;white-space:nowrap}
+.state.wait{color:var(--wait);border-color:color-mix(in srgb,var(--wait) 40%,transparent)}
+.state.none{color:var(--none);border-style:dashed}
+.next{color:var(--ink-2);font-size:13px;line-height:1.45;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.next.muted{color:var(--dim)}
+.right{text-align:right;font:500 11px var(--mono);color:var(--dim);white-space:nowrap}
+.lane.unwired{opacity:.7}
+
+/* ---- queues ---- */
+.q{border:1px solid var(--line);border-radius:7px;background:var(--sheet);overflow:hidden}
+.qr{display:flex;align-items:baseline;gap:12px;padding:11px 15px;border-bottom:1px solid var(--line)}
+.qr:last-child{border-bottom:0}
+.qr .k{font:600 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;
+  color:var(--wait);min-width:56px;flex:none}
+.qr .k.live{color:var(--live)}
+.qr .t{flex:1;min-width:0;line-height:1.4}
+.qr .t small{display:block;color:var(--dim);font-size:12.5px;margin-top:2px}
+.qr .w{font:500 11px var(--mono);color:var(--dim);white-space:nowrap}
+.none-yet{padding:14px 15px;color:var(--dim);font-size:13px}
+footer{margin-top:34px;color:var(--dim);font-size:12.5px;line-height:1.65;max-width:82ch}
+code{font:400 11.5px var(--mono);color:var(--ink-2)}
+@media (max-width:820px){
+  .lane,.lane-head{grid-template-columns:1fr 92px;gap:8px}
+  .lane .next,.lane .right,.lane-head :nth-child(3),.lane-head :nth-child(4){display:none}
+}
+</style></head><body>
+<div class="wrap" id="app"><p class="none-yet">Reading the Command Center…</p></div>
+<script src="/try/data.js"></script>
+<script>
+(async () => {
+  const { load, ago, esc } = window.CC;
+  const app = document.getElementById('app');
+  let d; try { d = await load(); } catch (e) {
+    app.innerHTML = `<p class="none-yet">Could not reach the Command Center. ${esc(e.message)}</p>`; return; }
+
+  const date = new Date().toLocaleDateString(undefined,
+    {weekday:'short',day:'numeric',month:'short'}).toUpperCase();
+
+  const lane = s => s.source ? `
+    <div class="lane">
+      <div class="nm"><span class="pip ${s.blocked?'wait':'ok'}"></span>
+        ${esc(s.name)} <small>${esc(s.id||'')}</small></div>
+      <span class="state ${s.blocked?'wait':''}">${esc(s.stage||'—')}</span>
+      <div class="next">${esc(s.blocked ? s.note : (s.next||'—'))}</div>
+      <div class="right">${s.blocked?'needs you':'clear'}</div>
+    </div>` : `
+    <div class="lane unwired">
+      <div class="nm"><span class="pip"></span>${esc(s.name)}</div>
+      <span class="state none">no source</span>
+      <div class="next muted">${esc(s.why)}</div>
+      <div class="right">unwired</div>
+    </div>`;
+
+  app.innerHTML = `
+    <div class="bar">
+      <h1>Command Center</h1><span class="date">${esc(date)}</span>
+      <div class="counts">
+        <span class="c-wait">waiting <b>${d.needsYou.length}</b></span>
+        <span class="c-live">running <b>${d.inFlight.length}</b></span>
+        <span>runs today <b>${d.runsToday}</b></span>
+      </div>
+    </div>
+
+    <h2>Streams</h2>
+    <div class="lanes">
+      <div class="lane-head"><span>Stream</span><span>Stage</span><span>Next proof</span><span>State</span></div>
+      ${d.streams.map(lane).join('')}
+    </div>
+
+    <h2>Needs you · ${d.needsYou.length}</h2>
+    <div class="q">${d.needsYou.length ? d.needsYou.map(i=>`
+      <div class="qr"><span class="k">${esc(i.kind)}</span>
+        <span class="t">${esc(i.title)}<small>${esc(i.why)}</small></span>
+        <span class="w">${esc(i.at?ago(i.at):'')}</span></div>`).join('')
+      : '<div class="none-yet">Nothing waiting.</div>'}</div>
+
+    <h2>In flight · ${d.inFlight.length}</h2>
+    <div class="q">${d.inFlight.length ? d.inFlight.map(i=>`
+      <div class="qr"><span class="k live">${esc(i.kind)}</span>
+        <span class="t">${esc(i.title)}<small>${esc(i.sub||'')}</small></span>
+        <span class="w">${esc(ago(i.started)||'')}</span></div>`).join('')
+      : '<div class="none-yet">Nothing running.</div>'}</div>
+
+    <footer>Live from <code>/api/venture</code>, <code>/api/outbox</code>,
+      <code>/api/history</code>, <code>/api/orchestrations</code>.
+      ProWood, BayCo and B3 have no endpoint on this server, so they hold a lane
+      marked <b>unwired</b> rather than being omitted — an absent row and an empty
+      row say different things.
+      ${d.stale?'<br><b>The board could not read the workspace</b>; stages may be wrong.':''}
+    </footer>`;
+})();
+</script></body></html>

@@ -1,0 +1,184 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>C — Cockpit</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Söhne:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* DIRECTION C — "Cockpit".
+   The other two show you the day. This one is for working it: the left rail is
+   what needs deciding, the right is where you actually talk to a run -- read
+   what it did, then push it somewhere else without starting over. Built around
+   the complaint that a run is fire-and-forget. */
+:root{
+  --bg:#0a0b0b; --sheet:#101212; --sunk:#070808; --ink:#e7e9e8; --ink-2:#9aa09e;
+  --dim:#666c6b; --line:#1c1f1f; --line-2:#272b2b; --accent:#4ad4a2;
+  --wait:#dba741; --bad:#e06a58;
+  --sans:'IBM Plex Sans',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:light){:root:not([data-t="dark"]){
+  --bg:#f6f7f7; --sheet:#fff; --sunk:#eef0f0; --ink:#141717; --ink-2:#4b5250;
+  --dim:#79807e; --line:#e3e6e6; --line-2:#d3d7d7; --accent:#0f8a63;
+  --wait:#8f6410; --bad:#b2402f;}}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;
+  -webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
+.top{display:flex;align-items:center;gap:16px;padding:11px 18px;border-bottom:1px solid var(--line);flex:none}
+.top b{font-size:14px;font-weight:600}
+.top .d{font:500 11px var(--mono);color:var(--dim);letter-spacing:.06em}
+.top .st{margin-left:auto;display:flex;gap:14px;font:500 11.5px var(--mono);color:var(--dim)}
+.top .st i{font-style:normal;color:var(--wait);font-weight:600}
+.top .st i.go{color:var(--accent)}
+
+.split{flex:1;display:grid;grid-template-columns:340px 1fr;min-height:0}
+.rail{border-right:1px solid var(--line);overflow-y:auto;padding:14px 0 40px;background:var(--sheet)}
+.pane{display:flex;flex-direction:column;min-width:0;min-height:0}
+
+h2{font:600 10px var(--mono);letter-spacing:.15em;text-transform:uppercase;color:var(--dim);
+  margin:0;padding:14px 16px 7px}
+.item{display:block;width:100%;text-align:left;background:none;border:0;cursor:pointer;
+  padding:10px 16px;border-left:2px solid transparent;color:inherit;font:inherit}
+.item:hover{background:var(--sunk)}
+.item[aria-selected="true"]{background:var(--sunk);border-left-color:var(--accent)}
+.item .t{display:block;line-height:1.35;font-weight:500}
+.item .s{display:block;color:var(--dim);font:400 11.5px var(--mono);margin-top:3px}
+.item .b{display:inline-block;font:600 9.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;
+  padding:2px 6px;border-radius:3px;border:1px solid var(--line-2);color:var(--dim);margin-bottom:4px}
+.item .b.wait{color:var(--wait);border-color:color-mix(in srgb,var(--wait) 40%,transparent)}
+.item .b.go{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 40%,transparent)}
+.empty{padding:10px 16px 16px;color:var(--dim);font-size:13px}
+.sep{height:1px;background:var(--line);margin:12px 0}
+
+/* ---- the working pane ---- */
+.head{padding:16px 20px 13px;border-bottom:1px solid var(--line);flex:none}
+.head h1{margin:0 0 4px;font-size:17px;font-weight:600;letter-spacing:-.01em;line-height:1.3}
+.head .meta{font:500 11.5px var(--mono);color:var(--dim);display:flex;gap:12px;flex-wrap:wrap}
+.head .meta b{color:var(--accent);font-weight:600}
+.body{flex:1;overflow-y:auto;padding:16px 20px;min-height:0}
+.body pre{margin:0;font:400 12.5px/1.65 var(--mono);white-space:pre-wrap;word-break:break-word;color:var(--ink-2)}
+.placeholder{color:var(--dim);max-width:58ch;line-height:1.7}
+.placeholder b{color:var(--ink)}
+
+/* ---- steer ---- */
+.steer{flex:none;border-top:1px solid var(--line);padding:12px 20px 16px;background:var(--sheet)}
+.steer .lbl{font:600 10px var(--mono);letter-spacing:.13em;text-transform:uppercase;
+  color:var(--dim);display:block;margin-bottom:7px}
+.steer .rowx{display:flex;gap:9px;align-items:flex-end}
+textarea{flex:1;resize:none;min-height:62px;border-radius:6px;padding:10px 12px;
+  background:var(--sunk);border:1px solid var(--line-2);color:var(--ink);
+  font:400 13px/1.5 var(--sans)}
+textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button.send{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;
+  padding:10px 16px;border-radius:6px;cursor:pointer;background:var(--accent);
+  border:1px solid var(--accent);color:#06231a}
+button.send[disabled]{opacity:.45;cursor:not-allowed}
+.quick{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
+.quick button{font:500 11px var(--mono);padding:5px 10px;border-radius:999px;cursor:pointer;
+  background:transparent;border:1px solid var(--line-2);color:var(--dim)}
+.quick button:hover{color:var(--ink);border-color:var(--dim)}
+.note{margin-top:9px;font:400 11.5px/1.6 var(--mono);color:var(--dim)}
+.note b{color:var(--wait)}
+@media (max-width:860px){.split{grid-template-columns:1fr}.rail{display:none}}
+</style></head><body>
+<div class="top"><b>Command Center</b><span class="d" id="date"></span>
+  <div class="st" id="counts"></div></div>
+<div class="split">
+  <aside class="rail" id="rail"></aside>
+  <section class="pane">
+    <div class="head" id="head"></div>
+    <div class="body" id="body"></div>
+    <div class="steer">
+      <label class="lbl" for="follow">Send a follow-up into this run</label>
+      <div class="rowx">
+        <textarea id="follow" placeholder="Narrow it to the Lakeland sites only, and skip the tariff summary."></textarea>
+        <button class="send" id="send" disabled>Send</button>
+      </div>
+      <div class="quick">
+        <button>Tighten scope</button><button>Show your sources</button>
+        <button>Redo, shorter</button><button>Stop here</button>
+      </div>
+      <p class="note"><b>Prototype.</b> The CLI supports this
+        (<code>--resume</code> with <code>--input-format stream-json</code>), but this
+        page does not send yet — it would start real work and cost real tokens.
+        Wiring it is the build, not the mock.</p>
+    </div>
+  </section>
+</div>
+<script src="/try/data.js"></script>
+<script>
+(async () => {
+  const { load, ago, esc } = window.CC;
+  let d;
+  try { d = await load(); } catch (e) {
+    document.getElementById('body').innerHTML =
+      `<p class="placeholder">Could not reach the Command Center. ${esc(e.message)}</p>`; return; }
+
+  document.getElementById('date').textContent =
+    new Date().toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'}).toUpperCase();
+  document.getElementById('counts').innerHTML =
+    `<span>waiting <i>${d.needsYou.length}</i></span>
+     <span>running <i class="go">${d.inFlight.length}</i></span>
+     <span>runs today <i class="go">${d.runsToday}</i></span>`;
+
+  // The rail is only what you might act on: decisions, live work, then recent.
+  const recent = d.runs.filter(r => r.status !== 'running').slice(0, 8);
+  const mk = (list, kind) => list.map((i, k) => `
+    <button class="item" role="option" data-k="${kind}" data-i="${k}">
+      <span class="b ${kind === 'need' ? 'wait' : kind === 'live' ? 'go' : ''}">${
+        esc(i.kind || i.skill || 'run')}</span>
+      <span class="t">${esc(i.title || i.label)}</span>
+      <span class="s">${esc(i.why || i.sub || i.skill || '')} ${
+        i.at || i.started ? '· ' + ago(i.at || i.started) : ''}</span></button>`).join('');
+
+  document.getElementById('rail').innerHTML = `
+    <h2>Needs you · ${d.needsYou.length}</h2>
+    ${d.needsYou.length ? mk(d.needsYou,'need') : '<p class="empty">Nothing waiting.</p>'}
+    <div class="sep"></div>
+    <h2>In flight · ${d.inFlight.length}</h2>
+    ${d.inFlight.length ? mk(d.inFlight,'live') : '<p class="empty">Nothing running.</p>'}
+    <div class="sep"></div>
+    <h2>Recent runs</h2>
+    ${recent.length ? mk(recent,'past') : '<p class="empty">No runs yet.</p>'}`;
+
+  const pools = { need: d.needsYou, live: d.inFlight, past: recent };
+  const head = document.getElementById('head'), body = document.getElementById('body');
+  const send = document.getElementById('send');
+
+  function show(kind, idx) {
+    const it = pools[kind][idx]; if (!it) return;
+    document.querySelectorAll('.item').forEach(b =>
+      b.setAttribute('aria-selected', String(b.dataset.k === kind && +b.dataset.i === idx)));
+    const title = it.title || it.label;
+    head.innerHTML = `<h1>${esc(title)}</h1><div class="meta">
+      <span>${esc(it.kind || it.skill || 'run')}</span>
+      ${it.sub ? `<span>${esc(it.sub)}</span>` : ''}
+      ${it.status ? `<span><b>${esc(it.status)}</b></span>` : ''}
+      ${it.at || it.started ? `<span>${esc(ago(it.at || it.started))}</span>` : ''}
+      ${it.elapsed ? `<span>${it.elapsed}s</span>` : ''}</div>`;
+    send.disabled = kind !== 'live';
+    if (it.id && kind !== 'need') {
+      body.innerHTML = '<pre>Loading transcript…</pre>';
+      fetch(`/api/job/${it.id}?offset=0`).then(r => r.json()).then(j => {
+        body.innerHTML = j.chunk
+          ? `<pre>${esc(j.chunk)}</pre>`
+          : `<p class="placeholder">No transcript is stored for this run.
+             ${it.note ? `It was archived to <b>${esc(it.note)}</b>.` : ''}</p>`;
+      }).catch(() => { body.innerHTML = '<p class="placeholder">Transcript unavailable.</p>'; });
+    } else {
+      body.innerHTML = `<p class="placeholder">${esc(it.why || '')}<br><br>
+        This is a decision, not a transcript — it belongs to
+        <b>${esc(it.where || 'the board')}</b>. In the built version the approve and
+        reject controls would sit here, so ruling on it never means leaving this page.</p>`;
+    }
+  }
+
+  document.getElementById('rail').addEventListener('click', e => {
+    const b = e.target.closest('.item'); if (b) show(b.dataset.k, +b.dataset.i);
+  });
+
+  const first = d.inFlight.length ? ['live',0] : d.needsYou.length ? ['need',0]
+              : recent.length ? ['past',0] : null;
+  if (first) show(...first);
+  else body.innerHTML = '<p class="placeholder">Nothing to work on.</p>';
+})();
+</script></body></html>

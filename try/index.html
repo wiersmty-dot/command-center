@@ -1,0 +1,47 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Three directions</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0c0d0e;--sheet:#131516;--ink:#e9eaeb;--ink-2:#a0a5a8;--dim:#6a7073;--line:#212426;--accent:#7c8cf8}
+@media(prefers-color-scheme:light){:root{--bg:#f7f8f9;--sheet:#fff;--ink:#14161a;--ink-2:#4b5259;--dim:#798086;--line:#e4e7ea;--accent:#4d5fe0}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:15px;line-height:1.6}
+.w{max-width:900px;margin:0 auto;padding:56px 22px 90px}
+h1{font-size:30px;margin:0 0 8px;letter-spacing:-.02em}
+.lede{color:var(--ink-2);margin:0 0 34px;max-width:68ch}
+.g{display:grid;gap:14px}
+a.card{display:block;padding:18px 20px;border:1px solid var(--line);border-radius:9px;
+  background:var(--sheet);text-decoration:none;color:inherit}
+a.card:hover{border-color:var(--accent)}
+.k{font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+h2{font-size:19px;margin:6px 0 6px;letter-spacing:-.01em}
+p{margin:0;color:var(--ink-2);font-size:14.5px}
+.best{margin-top:9px;font:500 12.5px 'IBM Plex Mono',monospace;color:var(--dim)}
+footer{margin-top:34px;color:var(--dim);font-size:13.5px;line-height:1.7;max-width:74ch}
+</style></head><body><div class="w">
+<h1>Three directions</h1>
+<p class="lede">All three read the same live endpoints and the same normalised model, so what
+you are comparing is the design, not the data. None of them invents a figure: ProWood, BayCo
+and B3 have no endpoint on this server and every direction has to say so in its own way.</p>
+<div class="g">
+  <a class="card" href="/try/a.html"><span class="k">Direction A</span>
+    <h2>Standup</h2>
+    <p>One column, read top to bottom, done in thirty seconds. No cards — rules and space do
+       the grouping. Colour only marks what is yours to answer.</p>
+    <div class="best">Best if the daily question is “what do I need to know?”</div></a>
+  <a class="card" href="/try/b.html"><span class="k">Direction B</span>
+    <h2>Lanes</h2>
+    <p>Ventures as rows, columns always in the same place, so you scan down a column instead
+       of reading a page. Densest of the three.</p>
+    <div class="best">Best if the daily question is “where does each thing stand?”</div></a>
+  <a class="card" href="/try/c.html"><span class="k">Direction C</span>
+    <h2>Cockpit</h2>
+    <p>Two panes: what needs deciding on the left, the run you are working on the right, with
+       a follow-up box under it. Built around steering rather than watching.</p>
+    <div class="best">Best if the daily question is “what am I working on right now?”</div></a>
+</div>
+<footer>These are throwaway prototypes in <code>try/</code>. Nothing here replaces a page you
+use; the live Command Center is untouched. Pick one — or parts of several — and that becomes
+the build.</footer>
+</div></body></html>

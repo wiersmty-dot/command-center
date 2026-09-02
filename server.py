@@ -2404,6 +2404,16 @@ class Handler(BaseHTTPRequestHandler):
         if route == "/hud-skin.css":
             return self.send_file("hud-skin.css", "text/css; charset=utf-8")
 
+        # Candidate designs, served from try/ so they can be compared side by
+        # side against live data without touching the pages in use.
+        if route == "/try":
+            return self.send_file(os.path.join("try", "index.html"), "text/html; charset=utf-8")
+        if route.startswith("/try/"):
+            name = route[len("/try/"):] or "index.html"
+            if name and "/" not in name and ".." not in name:
+                kind = "application/javascript" if name.endswith(".js") else "text/html; charset=utf-8"
+                return self.send_file(os.path.join("try", name), kind)
+
         if route == "/hud.css":
             return self.send_file("hud.css", "text/css; charset=utf-8")
 
