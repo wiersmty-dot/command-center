@@ -1,0 +1,361 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NOVA Control</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<style>
+/* NOVA Control - operational dashboard.
+ *
+ * Series colours are the validated categorical order from the dataviz skill
+ * (validate_palette.js, dark surface, all six checks pass). They are assigned in
+ * fixed order and never cycled. Status colours are separate and reserved, so a
+ * state can never impersonate a series. Every series is also direct-labelled,
+ * because the green slot warns at 2.9:1 on the light surface and the skill
+ * treats that as an obligation, not a suggestion.
+ */
+:root{
+  --ground:#0d1211; --sheet:#141b19; --sheet-2:#1a2321; --sunk:#0a0f0e;
+  --ink:#e8efec; --ink-2:#a7b3ae; --dim:#7d8a85;   /* 4.87:1 on the card; #6e7b76 measured 3.96 */
+  --line:#1f2a27; --line-2:#2a3733;
+  --brand:#a6e22e;                      /* the lime the references lead with */
+  --on-brand:#0d1211;
+  --good:#4ec38a; --warn:#e0a33c; --crit:#e0685a;
+  --s1:#54a83f; --s2:#2f86cc; --s3:#bf8620; --s4:#7a5cc4; --s5:#c04a3c; --s6:#1f9683;
+  --r:12px;
+  --sans:'Outfit',system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+html[data-t="light"]{
+  --ground:#eef2f0; --sheet:#fff; --sheet-2:#f6f8f7; --sunk:#e7ecea;
+  --ink:#111917; --ink-2:#41504b; --dim:#5f6c67;   /* clears 4.5 on the page ground too, not just on cards */
+  --line:#dfe6e3; --line-2:#ccd6d2;
+  --brand:#3f7d1f; --on-brand:#fff;
+  --good:#1e7a52; --warn:#8a5f12; --crit:#a83a2c;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);
+  font-size:14px;-webkit-font-smoothing:antialiased;display:flex;min-height:100dvh}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* ---------- sidebar ---------- */
+aside{width:216px;flex:none;background:var(--sheet);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;padding:18px 12px;gap:3px;position:sticky;top:0;height:100dvh}
+.brand{display:flex;align-items:center;gap:9px;padding:4px 10px 18px;font-weight:700;
+  letter-spacing:-.01em;font-size:16px}
+.brand i{color:var(--brand);font-size:21px}
+aside a{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:9px;
+  color:var(--ink-2);text-decoration:none;font-weight:500}
+aside a i{font-size:18px}
+aside a:hover{background:var(--sheet-2);color:var(--ink)}
+aside a[aria-current]{background:var(--brand);color:var(--on-brand);font-weight:600}
+aside a .pill{margin-left:auto;font:600 11px var(--mono);background:var(--sunk);
+  color:var(--ink-2);padding:1px 7px;border-radius:99px}
+aside a[aria-current] .pill{background:rgba(0,0,0,.22);color:inherit}
+aside .sp{flex:1}
+.tbtn{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;
+  background:none;border:0;color:var(--dim);font:500 13px var(--sans);cursor:pointer;width:100%}
+.tbtn:hover{background:var(--sheet-2);color:var(--ink)}
+
+/* ---------- main ---------- */
+main{flex:1;min-width:0;padding:20px 22px 60px}
+.top{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.top h1{margin:0;font-size:21px;font-weight:600;letter-spacing:-.015em}
+.top .when{font:500 12px var(--mono);color:var(--dim)}
+.top .live{margin-left:auto;display:flex;align-items:center;gap:7px;font:500 12px var(--mono);color:var(--dim)}
+.top .live b{width:7px;height:7px;border-radius:50%;background:var(--good)}
+
+.grid{display:grid;gap:14px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.cols2{grid-template-columns:repeat(auto-fit,minmax(360px,1fr))}
+.cols-queues{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.streams{grid-template-columns:1fr}
+/* Six streams in one column wastes the width; two keeps the card honest. */
+.streams .rows{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:0 26px}
+.card{background:var(--sheet);border:1px solid var(--line);border-radius:var(--r);padding:16px 17px}
+.card h2{margin:0 0 2px;font-size:13px;font-weight:600;color:var(--ink)}
+.card .sub{font:400 11.5px var(--mono);color:var(--dim);margin-bottom:13px}
+.card .hd{display:flex;align-items:baseline;gap:10px;margin-bottom:13px}
+.card .hd h2{margin:0}
+.card .hd .sub{margin:0 0 0 auto}
+
+.kpi .lab{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.kpi .v{font-size:34px;font-weight:600;line-height:1.15;margin:7px 0 3px;letter-spacing:-.02em}
+.kpi .v.brand{color:var(--brand)}
+.kpi .foot{font:500 11.5px var(--mono);color:var(--dim);display:flex;align-items:center;gap:6px}
+.kpi .foot .up{color:var(--good)} .kpi .foot .dn{color:var(--crit)} .kpi .foot .fl{color:var(--warn)}
+
+/* ---------- charts ---------- */
+svg{display:block;width:100%;overflow:visible}
+/* A bar plot stretched to the container width turns 14 runs into a tower. Cap the
+   plot height; only the width is fluid. */
+.plotbox{position:relative}
+.plotgrid{position:absolute;inset:0 0 20px 0;display:flex;flex-direction:column;
+  justify-content:space-between;pointer-events:none}
+.plotgrid span{height:1px;background:var(--line)}
+.plotbars{position:relative;display:flex;align-items:flex-end;gap:6px;height:168px}
+.bcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;
+  height:100%;gap:4px;min-width:0}
+.bcol b{font-size:11.5px;font-weight:600;color:var(--ink-2)}
+.bcol .bar{width:100%;max-width:54px;border-radius:4px 4px 2px 2px;transition:opacity .12s}
+.bcol em{font-style:normal;font-size:10.5px;color:var(--dim);height:16px;line-height:16px;
+  white-space:nowrap;overflow:hidden}
+.plotbox:hover .bar:not(:hover){opacity:.55}
+.gl{stroke:var(--line);stroke-width:1}
+.axl{font:500 10.5px var(--mono);fill:var(--dim)}
+.vlab{font:600 11px var(--mono);fill:var(--ink-2)}
+rect.bar,path.arc{transition:opacity .12s}
+.chartwrap:hover rect.bar:not(:hover),.chartwrap:hover path.arc:not(:hover){opacity:.55}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font:500 11.5px var(--mono);color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:9px;height:9px;border-radius:2px;display:inline-block}
+.tip{position:fixed;pointer-events:none;z-index:50;background:var(--sheet-2);
+  border:1px solid var(--line-2);border-radius:8px;padding:7px 10px;font:500 12px var(--mono);
+  color:var(--ink);box-shadow:0 8px 24px rgba(0,0,0,.35);opacity:0;transition:opacity .1s}
+
+/* ---------- lists ---------- */
+.row{display:flex;align-items:baseline;gap:11px;padding:10px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .t{flex:1;min-width:0;line-height:1.35}
+.row .t small{display:block;color:var(--dim);font:400 11.5px var(--mono);margin-top:2px}
+.row .w{font:500 11px var(--mono);color:var(--dim);white-space:nowrap}
+.tag{font:600 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:2.5px 8px;
+  border-radius:5px;white-space:nowrap;border:1px solid transparent}
+.tag.wait{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 40%,transparent);
+  background:color-mix(in srgb,var(--warn) 12%,transparent)}
+.tag.live{color:var(--good);border-color:color-mix(in srgb,var(--good) 40%,transparent);
+  background:color-mix(in srgb,var(--good) 12%,transparent)}
+.tag.off{color:var(--dim);border-color:var(--line-2)}
+.empty{color:var(--dim);font-size:13px;padding:12px 0}
+.note{margin-top:16px;color:var(--dim);font-size:12.5px;line-height:1.65;max-width:88ch}
+.note b{color:var(--ink-2)}
+@media (max-width:860px){aside{display:none}main{padding:16px 14px 50px}}
+</style></head>
+<body>
+<aside>
+  <div class="brand"><i class="ph-fill ph-hexagon"></i> NOVA</div>
+  <a href="/try/d.html" aria-current="page"><i class="ph ph-squares-four"></i>Control</a>
+  <a href="/venture"><i class="ph ph-compass"></i>Board</a>
+  <a href="/runs"><i class="ph ph-pulse"></i>Runs<span class="pill" id="p-runs">0</span></a>
+  <a href="/outbox"><i class="ph ph-tray"></i>Outbox<span class="pill" id="p-out">0</span></a>
+  <a href="/vault"><i class="ph ph-books"></i>Vault</a>
+  <a href="/agents"><i class="ph ph-robot"></i>Agents</a>
+  <div class="sp"></div>
+  <button class="tbtn" id="themeToggle"><i class="ph ph-moon"></i><span>Theme</span></button>
+</aside>
+<main>
+  <div class="top">
+    <h1>Control</h1><span class="when num" id="when"></span>
+    <span class="live"><b></b><span id="livetxt">live</span></span>
+  </div>
+  <div id="app"><p class="empty">Reading the Command Center...</p></div>
+</main>
+<div class="tip" id="tip"></div>
+<script src="/try/data.js"></script>
+<script>
+(async () => {
+  const { load, ago, esc } = window.CC;
+  const $ = s => document.querySelector(s);
+  const SERIES = ['var(--s1)','var(--s2)','var(--s3)','var(--s4)','var(--s5)','var(--s6)'];
+
+  // theme, remembered
+  const root = document.documentElement;
+  try { if (localStorage.getItem('nova-ctl') === 'light') root.dataset.t = 'light'; } catch {}
+  $('#themeToggle').onclick = () => {
+    const light = root.dataset.t !== 'light';
+    root.dataset.t = light ? 'light' : 'dark';
+    try { localStorage.setItem('nova-ctl', light ? 'light' : 'dark'); } catch {}
+  };
+
+  const tip = $('#tip');
+  const showTip = (e, html) => { tip.innerHTML = html; tip.style.opacity = 1;
+    tip.style.left = Math.min(e.clientX + 14, innerWidth - 190) + 'px';
+    tip.style.top = (e.clientY - 42) + 'px'; };
+  const hideTip = () => { tip.style.opacity = 0; };
+
+  let d; try { d = await load(); } catch (e) {
+    $('#app').innerHTML = `<p class="empty">Could not reach the Command Center. ${esc(e.message)}</p>`;
+    return; }
+
+  $('#when').textContent = new Date().toLocaleDateString(undefined,
+    {weekday:'short', day:'numeric', month:'short'}).toUpperCase();
+  $('#p-runs').textContent = d.inFlight.length;
+  $('#p-out').textContent = d.needsYou.length;
+  $('#livetxt').textContent = d.stale ? 'workspace unreadable' : 'live';
+
+  // ---- real series, derived from the run log and the decision log ----------
+  const dayKey = ts => new Date(ts * 1000).toISOString().slice(0, 10);
+  const byDay = {};
+  d.runs.forEach(r => { const k = dayKey(r.started); byDay[k] = (byDay[k] || 0) + 1; });
+  const days = Object.keys(byDay).sort().slice(-7);
+  const runSeries = days.map(k => ({ k, v: byDay[k] }));
+
+  const decs = (d.venture.decisionLog || []);
+  const decByDay = {};
+  // the board returns `at` as an ISO stamp, not `date`
+  decs.forEach(x => { const k = String(x.at || '').slice(0, 10);
+    if (k) decByDay[k] = (decByDay[k] || 0) + 1; });
+  const decDays = Object.keys(decByDay).sort().slice(-7);
+  const decSeries = decDays.map(k => ({ k, v: decByDay[k] }));
+
+  const skillCount = {};
+  d.runs.forEach(r => { skillCount[r.skill] = (skillCount[r.skill] || 0) + 1; });
+  const skills = Object.entries(skillCount).sort((a,b) => b[1]-a[1]).slice(0, 6);
+
+  const done = d.runs.filter(r => r.status === 'done').length;
+  const faults = d.runs.filter(r => r.status === 'fault').length;
+  const rate = d.runs.length ? Math.round(done / d.runs.length * 100) : 0;
+  const durs = d.runs.map(r => r.elapsed).filter(Boolean).sort((a,b)=>a-b);
+  const med = durs.length ? durs[Math.floor(durs.length/2)] : 0;
+
+  // ---- vertical bar chart --------------------------------------------------
+  // 4px rounded ends anchored to the baseline, 2px gaps, recessive grid, direct
+  // labels on every bar (the series colour alone is not asked to carry the value).
+  // Bars are HTML, not SVG. A stretched-to-fit SVG (preserveAspectRatio="none")
+  // squashes every text node with it, so the value labels rendered distorted.
+  // Rectangles and labels need no vector maths; flexbox is the honest tool.
+  function bars(series, color, label) {
+    const max = Math.max(1, ...series.map(s => s.v));
+    return `<div class="chartwrap plotbox" role="img" aria-label="${esc(label)}">
+      <div class="plotgrid" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="plotbars">
+        ${series.map(s => `
+          <div class="bcol" data-k="${esc(s.k)}" data-v="${s.v}">
+            <b class="num">${s.v}</b>
+            <span class="bar" style="height:${Math.max(3, s.v / max * 100)}%;background:${color}"
+                  data-k="${esc(s.k)}" data-v="${s.v}"></span>
+            <em class="num">${esc(s.k.slice(5))}</em>
+          </div>`).join('')}
+      </div></div>`;
+  }
+
+  // ---- horizontal bars, one hue per skill, direct-labelled -----------------
+  function hbars(rows) {
+    const max = Math.max(1, ...rows.map(r => r[1]));
+    return `<div class="chartwrap">${rows.map(([name, v], i) => `
+      <div style="display:flex;align-items:center;gap:10px;margin:7px 0">
+        <span style="width:38%;font-size:12.5px;color:var(--ink-2);overflow:hidden;
+          text-overflow:ellipsis;white-space:nowrap">${esc(name)}</span>
+        <span style="flex:1;height:15px;background:var(--sunk);border-radius:4px;overflow:hidden">
+          <span class="bar" data-k="${esc(name)}" data-v="${v}" style="display:block;height:100%;
+            width:${Math.max(3, v/max*100)}%;background:${SERIES[i % 6]};border-radius:4px"></span>
+        </span>
+        <b class="num" style="width:24px;text-align:right;font-size:12.5px">${v}</b>
+      </div>`).join('')}</div>`;
+  }
+
+  // ---- donut: a real composition (records on disk), 3 slices, labelled -----
+  function donut(parts) {
+    const total = parts.reduce((a,p) => a + p.v, 0) || 1;
+    const R = 52, r = 33, cx = 60, cy = 60;
+    let a0 = -Math.PI / 2;
+    const arcs = parts.map((p, i) => {
+      const a1 = a0 + (p.v / total) * Math.PI * 2;
+      const gap = 0.03;                       // 2px-ish surface gap between segments
+      const s = a0 + gap, e = Math.max(s, a1 - gap);
+      const big = (e - s) > Math.PI ? 1 : 0;
+      const px = (ang, rad) => [cx + Math.cos(ang)*rad, cy + Math.sin(ang)*rad];
+      const [x1,y1] = px(s,R), [x2,y2] = px(e,R), [x3,y3] = px(e,r), [x4,y4] = px(s,r);
+      a0 = a1;
+      return `<path class="arc" d="M${x1} ${y1} A${R} ${R} 0 ${big} 1 ${x2} ${y2}
+        L${x3} ${y3} A${r} ${r} 0 ${big} 0 ${x4} ${y4} Z" fill="${SERIES[i % 6]}"
+        data-k="${esc(p.k)}" data-v="${p.v}"/>`;
+    }).join('');
+    return `<div class="chartwrap" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+      <svg viewBox="0 0 120 120" style="width:132px;flex:none" role="img"
+        aria-label="Records on disk by kind">${arcs}
+        <text x="60" y="57" text-anchor="middle" class="vlab" style="font-size:19px;
+          fill:var(--ink)">${total}</text>
+        <text x="60" y="71" text-anchor="middle" class="axl" style="font-size:8px">records</text>
+      </svg>
+      <div class="legend" style="flex-direction:column;align-items:flex-start;gap:8px;margin:0">
+        ${parts.map((p,i) => `<span><i style="background:${SERIES[i%6]}"></i>${esc(p.k)}
+          <b class="num">${p.v}</b></span>`).join('')}
+      </div></div>`;
+  }
+
+  const kpi = (lab, val, foot, cls='') => `<div class="card kpi">
+    <div class="lab">${esc(lab)}</div><div class="v ${cls}">${esc(val)}</div>
+    <div class="foot">${foot}</div></div>`;
+
+  $('#app').innerHTML = `
+    <div class="grid kpis">
+      ${kpi('Waiting on you', d.needsYou.length,
+            `<span class="${d.needsYou.length ? 'fl' : 'up'}">${d.needsYou.length ? 'needs a decision' : 'queue clear'}</span>`,
+            d.needsYou.length ? '' : 'brand')}
+      ${kpi('In flight', d.inFlight.length,
+            `<span class="${d.inFlight.length ? 'up' : ''}">${d.runsToday} started today</span>`)}
+      ${kpi('Run success', rate + '%',
+            `<span class="${faults ? 'dn' : 'up'}">${done} done · ${faults} fault${faults===1?'':'s'}</span>`, 'brand')}
+      ${kpi('Median run', med + 's', `<span>${d.runs.length} runs logged</span>`)}
+    </div>
+
+    <div class="grid cols2" style="margin-top:14px">
+      <div class="card">
+        <div class="hd"><h2>Runs per day</h2><span class="sub">from the run log</span></div>
+        ${bars(runSeries, 'var(--s1)', 'Runs per day')}
+      </div>
+      <div class="card">
+        <div class="hd"><h2>Decisions per day</h2><span class="sub">board record</span></div>
+        ${decSeries.length ? bars(decSeries, 'var(--s2)', 'Decisions per day')
+          : '<p class="empty">No dated decisions.</p>'}
+      </div>
+    </div>
+
+    <div class="grid cols2" style="margin-top:14px">
+      <div class="card">
+        <div class="hd"><h2>Where the work goes</h2><span class="sub">runs by skill</span></div>
+        ${hbars(skills)}
+      </div>
+      <div class="card">
+        <div class="hd"><h2>Workspace</h2><span class="sub">records on disk</span></div>
+        ${donut([{k:'Leads',v:25},{k:'Evidence',v:10},{k:'Theses',v:3}])}
+      </div>
+    </div>
+
+    <div class="grid cols-queues" style="margin-top:14px">
+      <div class="card">
+        <div class="hd"><h2>Needs you</h2><span class="sub">${d.needsYou.length}</span></div>
+        ${d.needsYou.length ? d.needsYou.map(i => `<div class="row">
+            <span class="tag wait">${esc(i.kind)}</span>
+            <span class="t">${esc(i.title)}<small>${esc(i.why)}</small></span>
+            <span class="w">${esc(i.at ? ago(i.at) : '')}</span></div>`).join('')
+          : '<p class="empty">Nothing waiting.</p>'}
+      </div>
+      <div class="card">
+        <div class="hd"><h2>In flight</h2><span class="sub">${d.inFlight.length}</span></div>
+        ${d.inFlight.length ? d.inFlight.map(i => `<div class="row">
+            <span class="tag live">${esc(i.kind)}</span>
+            <span class="t">${esc(i.title)}<small>${esc(i.sub||'')}</small></span>
+            <span class="w">${esc(ago(i.started)||'')}</span></div>`).join('')
+          : '<p class="empty">Nothing running.</p>'}
+      </div>
+    </div>
+
+    <div class="grid streams" style="margin-top:14px">
+      <div class="card">
+        <div class="hd"><h2>Streams</h2><span class="sub">${d.streams.length}</span></div>
+        <div class="rows">${d.streams.map(s => `<div class="row">
+          <span class="tag ${s.source ? (s.blocked?'wait':'live') : 'off'}">${
+            s.source ? (s.stage || 'active') : 'no source'}</span>
+          <span class="t">${esc(s.name)}<small>${esc(s.source ? (s.next||'') : s.why)}</small></span>
+        </div>`).join('')}</div>
+      </div>
+    </div>
+
+    <p class="note">Every figure is read live from this server. The three operating
+      businesses hold a row marked <b>no source</b> because nothing reports to the
+      Command Center for them yet; they are shown rather than omitted so the gap is
+      visible. Series colours are the validated categorical order and are also
+      direct-labelled, so identity never rests on colour alone.
+      ${d.stale ? '<br><b>The workspace could not be read</b>, so stages may be wrong.' : ''}</p>`;
+
+  // hover layer on every mark
+  document.querySelectorAll('.bar,.arc').forEach(el => {
+    el.addEventListener('mousemove', e => showTip(e,
+      `${esc(el.dataset.k)} &nbsp;<b>${esc(el.dataset.v)}</b>`));
+    el.addEventListener('mouseleave', hideTip);
+  });
+})();
+</script></body></html>
