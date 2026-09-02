@@ -133,7 +133,7 @@
   }
   .band:first-child { margin-top: 0; }
 
-  .tile {
+  .skill-tile {
     display: block;
     width: 100%;
     text-align: left;
@@ -147,22 +147,22 @@
     font-family: var(--sans);
     transition: background 110ms ease, border-color 110ms ease, transform 60ms ease;
   }
-  .tile:hover { background: var(--raised-hi); border-color: var(--dim); }
-  .tile:active { transform: translateY(1px); }
-  .tile:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
-  .tile[data-armed="1"] { border-color: var(--signal); background: var(--raised-hi); }
+  .skill-tile:hover { background: var(--raised-hi); border-color: var(--dim); }
+  .skill-tile:active { transform: translateY(1px); }
+  .skill-tile:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+  .skill-tile[data-armed="1"] { border-color: var(--signal); background: var(--raised-hi); }
 
-  .tile .top {
+  .skill-tile .top {
     display: flex;
     align-items: center;
     gap: 8px;
   }
-  .tile .name {
+  .skill-tile .name {
     font-size: 15px;
     font-weight: 600;
     letter-spacing: 0.01em;
   }
-  .tile .slug {
+  .skill-tile .slug {
     display: block;
     font-family: var(--mono);
     font-size: 10px;
@@ -288,7 +288,7 @@
   }
   .console .armed[data-on="1"] { display: block; }
 
-  .row { display: flex; gap: 10px; align-items: flex-end; }
+  .console-row { display: flex; gap: 10px; align-items: flex-end; }
 
   textarea {
     flex: 1;
@@ -364,21 +364,39 @@
   @media (prefers-reduced-motion: reduce) {
     * { animation: none !important; transition: none !important; }
   }
+
+/* ---- Mission Control skin -------------------------------------------------
+   The layout below is this page's own; only its surfaces are restated in the
+   HUD's language so it sits beside /mission without looking borrowed. Colours
+   come from hud.css tokens, which is why none are repeated here. */
+.deck{gap:12px;background:transparent;border:0}
+.rail,.stage{background:var(--glass);border:1px solid color-mix(in oklch, var(--cy) 18%, transparent);
+  border-radius:10px;backdrop-filter:blur(8px) saturate(140%);
+  -webkit-backdrop-filter:blur(8px) saturate(140%);overflow:hidden}
+.plate{margin-bottom:12px}
+.skill-tile{background:var(--glass-lift);
+  border:1px solid color-mix(in oklch, var(--cy) 16%, transparent);border-radius:8px}
+.skill-tile:hover{border-color:color-mix(in oklch, var(--cy) 45%, transparent)}
+.skill-tile[data-armed="1"]{border-color:color-mix(in oklch, var(--amber) 70%, transparent)}
+.strip,.tabs,.console,.alert{border-color:color-mix(in oklch, var(--cy) 16%, transparent)}
+.log{background:var(--glass-ghost)}
+.go{background:color-mix(in oklch, var(--cy) 16%, transparent);border:1px solid color-mix(in oklch, var(--cy) 55%, transparent);
+  color:var(--cy-br)}
+.go:hover:not(:disabled){background:color-mix(in oklch, var(--cy) 28%, transparent)}
+.tab[data-on="1"]{border-color:var(--ring)}
 </style>
 <link rel="stylesheet" href="/theme.css">
 <script src="/theme.js"></script>
 </head>
 <body>
 
-<header class="plate">
-  <h1>Command Center</h1>
-  <span class="units">BAYCO · PLANT 440 · BUILD · MONEY</span>
-  <div class="right">
-    <span id="where">—</span>
-    <span class="lamp" id="lamp" data-state="ready"></span>
-    <span id="clock">--:--:--</span>
+<div class="tile tile--ghost plate">
+  <div class="tile-head">
+    <div class="tile-name"><span class="lamp" id="lamp" data-state="ready"></span>
+      <h2 class="tile-title">Working folder</h2></div>
+    <span class="tile-meta" id="where">&mdash;</span>
   </div>
-</header>
+</div>
 
 <div class="deck">
 
@@ -399,7 +417,7 @@
 
     <div class="console">
       <div class="armed" id="armed"></div>
-      <div class="row">
+      <div class="console-row">
         <textarea id="box" rows="1" placeholder="Ask Claude anything, or click a skill to load it…"></textarea>
         <button class="go" id="go">Run</button>
       </div>
@@ -444,10 +462,13 @@
 
   const pad = n => String(n).padStart(2, '0');
 
+  // The HUD shell renders the masthead clock now. Kept guarded rather than
+  // deleted: an older cached copy of this page may still carry the element.
   setInterval(() => {
+    const el = document.getElementById('clock');
+    if (!el) return;
     const d = new Date();
-    document.getElementById('clock').textContent =
-      `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    el.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
   }, 1000);
 
   async function boot() {
@@ -476,7 +497,7 @@
 
       skills.filter(s => s.group === g).forEach(s => {
         const b = document.createElement('button');
-        b.className = 'tile';
+        b.className = 'skill-tile';
         b.dataset.skill = s.skill;
         b.innerHTML = `<span class="top"><span class="lamp" data-state="${s.ask ? 'ready' : ''}"></span>` +
                       `<span class="name"></span></span><span class="slug"></span>`;
@@ -496,7 +517,7 @@
       box.placeholder = s.placeholder || 'What should it do?';
       box.value = '';
       box.focus();
-      document.querySelectorAll('.tile').forEach(t =>
+      document.querySelectorAll('.skill-tile').forEach(t =>
         t.dataset.armed = t.dataset.skill === s.skill ? '1' : '0');
     } else {
       disarm();
@@ -572,7 +593,7 @@
     pending = null;
     armed.dataset.on = '0';
     box.placeholder = 'Ask Claude anything, or click a skill to load it…';
-    document.querySelectorAll('.tile').forEach(t => t.dataset.armed = '0');
+    document.querySelectorAll('.skill-tile').forEach(t => t.dataset.armed = '0');
   }
 
   async function launch(skill, label, prompt) {
@@ -742,6 +763,7 @@
   boot();
 })();
 </script>
-<script src="/nav.js" defer></script>
+<script src="/hud-shell.js" data-hud-title="COMMAND CENTER"
+        data-hud-sub="Run a skill, watch it stream"></script>
 </body>
 </html>

@@ -2401,6 +2401,9 @@ class Handler(BaseHTTPRequestHandler):
         if route == "/hud-shell.js":
             return self.send_file("hud-shell.js", "application/javascript")
 
+        if route == "/hud-skin.css":
+            return self.send_file("hud-skin.css", "text/css; charset=utf-8")
+
         if route == "/hud.css":
             return self.send_file("hud.css", "text/css; charset=utf-8")
 

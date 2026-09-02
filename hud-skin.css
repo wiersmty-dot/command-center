@@ -1,0 +1,154 @@
+/* Mission Control skin for the pages nova-workspaces.js renders.
+ *
+ * Runs, Vault and Board are drawn by nova-workspaces.js, which OWNS <body> --
+ * it assigns document.body.innerHTML and re-renders on navigation. So these
+ * pages cannot use /hud-shell.js: wrapping the body would be wiped the first
+ * time the renderer redrew. They are restyled in place instead, mapping the
+ * renderer's own vocabulary onto the HUD's.
+ *
+ *   .nw-top / .nw-nav a   ->  .hud-strip / .hud-pill
+ *   .nw-title             ->  .hud-head / .hud-title
+ *   .nw-card              ->  .tile  (glass, masked rim, depth)
+ *   .nw-button            ->  the HUD button
+ *   .nw-pill              ->  .chip
+ *
+ * Values are copied from hud.css rather than approximated, so the two cannot
+ * drift into looking merely similar. hud.css scopes its tokens to `.hud`;
+ * these pages have no such element, so the same tokens are restated on :root.
+ *
+ * Loaded AFTER nova-workspaces.css so it wins without !important.
+ */
+
+:root{
+  --cy:oklch(0.82 0.13 215);--cy-br:oklch(0.95 0.13 200);
+  --amber:oklch(0.82 0.17 75);--coral:oklch(0.70 0.18 25);--emerald:oklch(0.78 0.16 155);
+  --glass:oklch(0.30 0.06 235 / 5%);--glass-lift:oklch(0.30 0.06 235 / 4%);
+  --grid:oklch(0.82 0.13 215 / 8%);--ring:oklch(0.92 0.16 200);
+  --hud-ink:oklch(0.95 0.02 230);--hud-ink-2:oklch(0.82 0.05 230 / 82%);
+  --hud-dim:oklch(0.80 0.05 230 / 78%);--hud-ground:oklch(0.16 0.03 240);
+}
+
+/* ---- the ground: grid and the overhead glow ------------------------------ */
+body{
+  min-height:100vh;color:var(--hud-ink);background:var(--hud-ground);
+  font-family:'Rajdhani',system-ui,sans-serif;
+  background-image:
+    radial-gradient(ellipse at 50% -12%,oklch(0.82 0.13 215 / 14%),transparent 46rem),
+    linear-gradient(var(--grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:auto,44px 44px,44px 44px;
+  background-attachment:fixed;
+}
+
+/* ---- nav strip ----------------------------------------------------------- */
+.nw-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  background:transparent;border:0;padding:14px 0 10px}
+.nw-brand{font-family:'Michroma',var(--sans,sans-serif);letter-spacing:.2em;
+  font-size:13px;color:var(--cy-br)}
+.nw-kicker{font:600 11px 'JetBrains Mono',monospace;letter-spacing:.18em;
+  color:var(--hud-dim);text-transform:uppercase}
+.nw-nav{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+.nw-nav a{
+  font:600 11px 'JetBrains Mono',monospace;letter-spacing:.12em;text-transform:uppercase;
+  padding:7px 13px;border-radius:4px;text-decoration:none;
+  background:oklch(0.30 0.06 235 / 4%);color:var(--hud-dim);
+  border:1px solid oklch(0.82 0.13 215 / 20%)}
+.nw-nav a:hover{color:var(--hud-ink);border-color:oklch(0.82 0.13 215 / 50%)}
+.nw-nav a[aria-current="page"]{color:var(--cy-br);
+  border-color:oklch(0.92 0.16 200 / 70%);background:oklch(0.82 0.13 215 / 14%)}
+.nw-nav a:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+
+/* ---- masthead ------------------------------------------------------------ */
+.nw-title{background:transparent;border:0;padding:6px 0 18px}
+.nw-title h1{font-family:'Michroma',sans-serif;letter-spacing:.14em;
+  font-size:clamp(22px,3.4vw,34px);color:var(--hud-ink);margin:6px 0 8px}
+.nw-title p{color:var(--hud-ink-2);max-width:74ch}
+.nw-label{font:600 11px 'JetBrains Mono',monospace;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--hud-dim)}
+.nw-meta{font:400 12px 'JetBrains Mono',monospace;color:var(--hud-dim)}
+
+/* ---- the glass panel ----------------------------------------------------- */
+.nw-card,.vault-source-card,.agent-node,.feed-event,.decision-task,.workspace-sheet{
+  position:relative;border-radius:10px;overflow:hidden;
+  background:var(--glass);border:0;
+  backdrop-filter:blur(8px) saturate(140%);
+  -webkit-backdrop-filter:blur(8px) saturate(140%);
+  box-shadow:
+    0 1px 0 oklch(0.92 0.16 200 / 55%) inset,
+    0 -1px 0 oklch(0.92 0.16 200 / 25%) inset,
+    0 0 28px oklch(0.82 0.13 215 / 18%),
+    0 10px 32px oklch(0.04 0.02 240 / 35%);
+}
+/* the masked gradient rim -- the signature of the Daily Hub tile */
+.nw-card::before,.decision-task::before,.workspace-sheet::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;
+  pointer-events:none;background:linear-gradient(135deg,
+    oklch(0.92 0.16 200 / 75%) 0%,oklch(0.82 0.13 215 / 15%) 35%,
+    oklch(0.82 0.13 215 / 15%) 65%,oklch(0.92 0.16 200 / 65%) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask-composite:exclude}
+
+/* ---- controls ------------------------------------------------------------ */
+.nw-button{font:600 11px 'JetBrains Mono',monospace;letter-spacing:.1em;
+  text-transform:uppercase;padding:8px 14px;border-radius:4px;cursor:pointer;
+  background:oklch(0.82 0.13 215 / 16%);color:var(--cy-br);
+  border:1px solid oklch(0.82 0.13 215 / 55%)}
+.nw-button:hover{background:oklch(0.82 0.13 215 / 28%)}
+.nw-button.ghost{background:transparent;color:var(--hud-dim);
+  border-color:oklch(0.82 0.13 215 / 22%)}
+.nw-button.ghost:hover{color:var(--hud-ink);border-color:oklch(0.82 0.13 215 / 50%)}
+.nw-button:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+
+.nw-pill{font:600 11px 'JetBrains Mono',monospace;letter-spacing:.1em;
+  text-transform:uppercase;padding:3px 9px;border-radius:999px;
+  background:oklch(0.82 0.13 215 / 12%);color:var(--cy-br);
+  border:1px solid oklch(0.82 0.13 215 / 35%)}
+.nw-pill.ok{color:var(--emerald);border-color:oklch(0.78 0.16 155 / 45%);
+  background:oklch(0.78 0.16 155 / 12%)}
+.nw-pill.wait{color:var(--amber);border-color:oklch(0.82 0.17 75 / 45%);
+  background:oklch(0.82 0.17 75 / 12%)}
+.nw-pill.fault{color:var(--coral);border-color:oklch(0.70 0.18 25 / 45%);
+  background:oklch(0.70 0.18 25 / 12%)}
+
+.nw-empty{color:var(--hud-dim)}
+.nw-shell{max-width:1320px;margin:0 auto;padding:0 20px 72px}
+
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important}}
+
+/* ---- light -----------------------------------------------------------------
+   Mission Control themes, so these pages must too -- a toggle that silently
+   does nothing is worse than no toggle. Values copied from hud.css's own light
+   block (`:root.light .hud`) rather than derived, so the two grounds match
+   exactly instead of merely closely. */
+:root.light, body.light{
+  --glass:oklch(1 0 0 / 62%);--glass-lift:oklch(1 0 0 / 74%);
+  --cy:oklch(0.48 0.13 235);--cy-br:oklch(0.42 0.14 240);
+  --grid:oklch(0.48 0.13 235 / 9%);
+  --hud-ink:oklch(0.22 0.03 240);--hud-ink-2:oklch(0.30 0.03 240);
+  --hud-dim:oklch(0.38 0.03 240);--hud-ground:oklch(0.95 0.01 230);
+  /* same correction as hud.css: state colours tuned for a dark ground fail on paper */
+  --amber:oklch(0.52 0.13 75);--coral:oklch(0.50 0.19 25);--emerald:oklch(0.48 0.13 155);
+}
+body.light{
+  background-image:
+    radial-gradient(ellipse at 50% -12%,oklch(0.48 0.13 235 / 10%),transparent 46rem),
+    linear-gradient(var(--grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+}
+/* The rim and the outer glow are tuned for a dark ground; on paper they read as
+   smudge. Light gets a plain hairline and a soft drop instead. */
+body.light .nw-card,body.light .vault-source-card,body.light .agent-node,
+body.light .feed-event,body.light .decision-task,body.light .workspace-sheet{
+  border:1px solid oklch(0.48 0.13 235 / 22%);
+  box-shadow:0 1px 2px oklch(0.22 0.03 240 / 6%),0 8px 24px oklch(0.22 0.03 240 / 8%);
+}
+body.light .nw-card::before,body.light .decision-task::before,
+body.light .workspace-sheet::before{display:none}
+body.light .nw-nav a{background:oklch(1 0 0 / 62%);
+  border-color:oklch(0.48 0.13 235 / 22%)}
+body.light .nw-nav a[aria-current="page"]{background:oklch(0.48 0.13 235 / 12%);
+  border-color:oklch(0.42 0.14 240 / 60%)}
+body.light .nw-button{background:oklch(0.48 0.13 235 / 12%);
+  border-color:oklch(0.48 0.13 235 / 45%);color:oklch(0.42 0.14 240)}
+body.light .nw-button:hover{background:oklch(0.48 0.13 235 / 22%)}

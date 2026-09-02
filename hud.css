@@ -45,7 +45,12 @@
 :root.light .hud,body.light .hud{--ground:oklch(0.95 0.01 230);--ink:oklch(0.22 0.03 240);
   --ink-2:oklch(0.30 0.03 240);--dim:oklch(0.38 0.03 240);
   --glass:oklch(1 0 0 / 62%);--glass-ghost:oklch(1 0 0 / 42%);--glass-lift:oklch(1 0 0 / 74%);
-  --cy:oklch(0.48 0.13 235);--cy-br:oklch(0.42 0.14 240);--grid:oklch(0.48 0.13 235 / 9%)}
+  --cy:oklch(0.48 0.13 235);--cy-br:oklch(0.42 0.14 240);--grid:oklch(0.48 0.13 235 / 9%);
+  /* The semantic hues were tuned for a dark ground and were being carried into
+     light unchanged: --amber on paper measured 1.58:1, so an empty-state
+     heading was effectively invisible. Darkened here rather than at each call
+     site, so every page that names a state gets the readable one. */
+  --amber:oklch(0.52 0.13 75);--coral:oklch(0.50 0.19 25);--emerald:oklch(0.48 0.13 155)}
 
 .hud-wrap{max-width:1600px;margin:0 auto;padding:16px 22px 40px}
 
@@ -56,7 +61,11 @@
   box-shadow:0 1px 0 oklch(0.92 0.16 200 / 45%) inset,0 0 20px oklch(0.82 0.13 215 / 14%);
   font:600 11px 'JetBrains Mono',monospace;letter-spacing:.18em;text-transform:uppercase;
   color:var(--dim);text-decoration:none}
-a.hud-pill{transition:color var(--mid) var(--ease),box-shadow var(--mid) var(--ease)}
+a.hud-pill{color:var(--dim);text-decoration:none;
+  /* `.tile` sets color:inherit for the same reason -- an <a> otherwise takes the
+     UA link colour. These pills already rendered correctly without it; this
+     states the intent rather than relying on it, and costs nothing. */
+  transition:color var(--mid) var(--ease),box-shadow var(--mid) var(--ease)}
 a.hud-pill:hover{color:var(--ink)}
 a.hud-pill[aria-current="page"]{color:var(--cy-br)}
 
