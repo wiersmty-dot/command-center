@@ -58,7 +58,7 @@
   <section class="hero" aria-label="Key indicators">
     <div class="hero-side" id="hud-stats-l"></div>
     <div class="eye-wrap">
-      <canvas id="nova-eye" width="280" height="280" role="img"
+      <canvas id="nova-eye" width="520" height="520" role="img"
         aria-label="System pulse: idle unless something is running or waiting on you"></canvas>
     </div>
     <div class="hero-side" id="hud-stats-r"></div>
@@ -111,96 +111,141 @@
     if (!canvas) return;
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const dpr = Math.min(devicePixelRatio || 1, 2);
-    const size = canvas.width;                 // 280, set in the markup
+    const size = canvas.width;                 // logical px, set in the markup
     canvas.width = size * dpr; canvas.height = size * dpr;
     const ctx = canvas.getContext('2d');
     const cx = size / 2, cy = size / 2;
 
     let seed = 1337;
     const rnd = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+    const gauss = () => (rnd() + rnd() + rnd()) / 1.5 - 1;
 
-    const N = 130;
-    const spokes = Array.from({ length: N }, () => ({
-      a: rnd() * Math.PI * 2,
-      len: 0.55 + rnd() * 0.34,
-      w: 0.5 + rnd() * 1.1,
-      ph: rnd() * Math.PI * 2,
-      tw: 0.6 + rnd() * 1.3,
-      flare: rnd() < 0.06,
+    /* What makes the reference irises read as luminous rather than scratchy:
+       thousands of fine spokes, not a hundred; lengths clustered into bands, not
+       uniform noise; a hot ring at the pupil edge where they all originate; and
+       additive blending so overlaps bloom instead of just stacking grey. */
+    const N = 1100;
+    const spokes = Array.from({ length: N }, () => {
+      const band = rnd();
+      // three length bands: a dense short collar, a mid ring, sparse long rays
+      const len = band < 0.55 ? 0.18 + rnd() * 0.16
+                : band < 0.88 ? 0.34 + rnd() * 0.26
+                : 0.60 + rnd() * 0.36;
+      return {
+        a: rnd() * Math.PI * 2,
+        len,
+        w: 0.35 + rnd() * (len > 0.6 ? 0.9 : 0.55),
+        ph: rnd() * Math.PI * 2,
+        tw: 0.5 + rnd() * 1.4,
+        base: len > 0.6 ? 0.22 + rnd() * 0.3 : 0.28 + rnd() * 0.42,
+        flare: rnd() < 0.045,
+        drift: gauss() * 0.02,
+      };
+    });
+    // a scattering of bright motes that live between the spokes
+    const motes = Array.from({ length: 160 }, () => ({
+      a: rnd() * Math.PI * 2, r: 0.28 + rnd() * 0.62, s: 0.8 + rnd() * 1.6,
+      ph: rnd() * Math.PI * 2, tw: 0.8 + rnd() * 1.6,
     }));
 
-    // Colour comes from the page's own theme tokens (hud.css), read fresh
-    // each frame, not hardcoded. hud.css already darkens these for the light
-    // background -- a fixed pale cyan drawn there was nearly invisible until
-    // this was checked against the actual light theme, not assumed from dark.
     const hudEl = document.querySelector('.hud');
     const tri = name => {
       const raw = getComputedStyle(hudEl).getPropertyValue(name).trim();
       const m = raw.match(/oklch\(([\d.]+)\s+([\d.]+)\s+([\d.]+)\)/);
-      return m ? [m[1], m[2], m[3]] : ['0.8', '0.13', '215'];
+      return m ? [+m[1], +m[2], +m[3]] : [0.8, 0.13, 215];
     };
-    const ok = (t, a) => `oklch(${t[0]} ${t[1]} ${t[2]} / ${a})`;
+    const ok = (t, a, dl = 0) => `oklch(${Math.min(0.99, t[0] + dl)} ${t[1]} ${t[2]} / ${a})`;
 
     const MODE = {
-      idle:   { tok: '--cy',    rot: 0.010, pulse: 0.55 },
-      active: { tok: '--cy-br', rot: 0.05,  pulse: 1.9 },
-      needs:  { tok: '--amber', rot: 0.02,  pulse: 1.1 },
+      idle:   { tok: '--cy',    rot: 0.012, pulse: 0.5 },
+      active: { tok: '--cy-br', rot: 0.06,  pulse: 2.0 },
+      needs:  { tok: '--amber', rot: 0.022, pulse: 1.1 },
     };
-    const pupilR = size * 0.16, ringA = size * 0.30, ringB = size * 0.44, outerR = size * 0.47;
+    const pupilR = size * 0.155, outerR = size * 0.475;
 
     const frame = t => {
       const time = t / 1000;
       const mode = MODE[canvas.dataset.mode] || MODE.idle;
       const c = tri(mode.tok);
+      const light = (document.body.classList.contains('light')
+                  || document.documentElement.dataset.theme === 'light');
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, size, size);
 
-      // ambient glow behind everything
-      const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, outerR * 1.15);
-      glow.addColorStop(0, ok(c, 0.16));
-      glow.addColorStop(1, ok(c, 0));
-      ctx.fillStyle = glow;
+      const breathe = 1 + 0.02 * Math.sin(time * mode.pulse * 0.6);
+      const pr = pupilR * breathe;
+
+      // 1. soft atmosphere so the eye sits in space, not on the grid
+      ctx.globalCompositeOperation = 'source-over';
+      const halo = ctx.createRadialGradient(cx, cy, pr, cx, cy, outerR * 1.05);
+      halo.addColorStop(0, ok(c, light ? 0.22 : 0.20));
+      halo.addColorStop(0.55, ok(c, light ? 0.07 : 0.06));
+      halo.addColorStop(1, ok(c, 0));
+      ctx.fillStyle = halo;
       ctx.fillRect(0, 0, size, size);
 
-      const breathe = 1 + 0.028 * Math.sin(time * mode.pulse * 0.6);
-
-      // two concentric rings
-      [ringA, ringB].forEach((r, i) => {
-        ctx.beginPath();
-        ctx.arc(cx, cy, r * breathe, 0, Math.PI * 2);
-        ctx.strokeStyle = ok(c, 0.22 - i * 0.06);
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      });
-
-      // radiating spokes, each independently twinkling
-      spokes.forEach(sp => {
-        const a = sp.a + time * mode.rot;
-        const r0 = pupilR * 1.08 * breathe;
-        const r1 = (pupilR + (outerR - pupilR) * sp.len) * breathe;
-        let alpha = 0.3 + 0.48 * (0.5 + 0.5 * Math.sin(time * sp.tw + sp.ph));
+      // 2. spokes, additive so crossings bloom. On the light theme additive
+      //    blending would wash toward white, so fall back to normal compositing
+      //    with slightly heavier alpha there.
+      ctx.globalCompositeOperation = light ? 'source-over' : 'lighter';
+      ctx.lineCap = 'round';
+      for (const sp of spokes) {
+        const a = sp.a + time * (mode.rot + sp.drift);
+        const r0 = pr * 1.04;
+        const r1 = (pr + (outerR - pr) * sp.len) * breathe;
+        let alpha = sp.base * (0.55 + 0.45 * Math.sin(time * sp.tw + sp.ph));
         if (sp.flare) {
-          const f = Math.sin(time * mode.pulse + sp.ph);
-          if (f > 0.88) alpha += 0.5 * (f - 0.88) / 0.12;
+          const f = Math.sin(time * mode.pulse * 1.3 + sp.ph);
+          if (f > 0.9) alpha += 0.7 * (f - 0.9) / 0.1;
         }
-        ctx.strokeStyle = ok(c, Math.min(1, alpha).toFixed(3));
+        ctx.strokeStyle = ok(c, Math.min(1, alpha * (light ? 1.15 : 1)).toFixed(3), sp.len > 0.6 ? 0.06 : 0);
         ctx.lineWidth = sp.w;
         ctx.beginPath();
         ctx.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0);
         ctx.lineTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
         ctx.stroke();
-      });
+      }
 
-      // the pupil, dark, with a small fixed catch-light so it reads as looking
-      // at something rather than a plain disc
-      ctx.beginPath();
-      ctx.arc(cx, cy, pupilR * breathe, 0, Math.PI * 2);
-      ctx.fillStyle = getComputedStyle(hudEl).getPropertyValue('--ground').trim() || '#04070a';
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(cx - pupilR * 0.32, cy - pupilR * 0.32, pupilR * 0.22, 0, Math.PI * 2);
-      ctx.fillStyle = ok(c, 0.55);
-      ctx.fill();
+      // 3. motes between the spokes
+      for (const m of motes) {
+        const a = m.a + time * mode.rot * 0.6;
+        const r = (pr + (outerR - pr) * m.r) * breathe;
+        const al = 0.25 + 0.55 * (0.5 + 0.5 * Math.sin(time * m.tw + m.ph));
+        ctx.fillStyle = ok(c, al.toFixed(3), 0.1);
+        ctx.beginPath();
+        ctx.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, m.s * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 4. the limbal ring: the hot band at the pupil edge every reference has.
+      //    This is the one place bloom is spent, because it is expensive.
+      ctx.globalCompositeOperation = light ? 'source-over' : 'lighter';
+      ctx.shadowBlur = 18; ctx.shadowColor = ok(c, 0.9, 0.08);
+      ctx.strokeStyle = ok(c, 0.85, 0.12);
+      ctx.lineWidth = 2.2;
+      ctx.beginPath(); ctx.arc(cx, cy, pr * 1.03, 0, Math.PI * 2); ctx.stroke();
+      ctx.shadowBlur = 0;
+      // a second, thinner, dimmer ring further out gives the banding depth
+      ctx.strokeStyle = ok(c, 0.28);
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(cx, cy, (pr + (outerR - pr) * 0.36) * breathe, 0, Math.PI * 2); ctx.stroke();
+
+      // 5. pupil: not a flat disc. Deep centre, faint lift at the edge, and a
+      //    soft catch-light so it reads as a lens looking at you.
+      ctx.globalCompositeOperation = 'source-over';
+      const ground = getComputedStyle(hudEl).getPropertyValue('--ground').trim() || '#04070a';
+      const pg = ctx.createRadialGradient(cx - pr * 0.15, cy - pr * 0.15, 0, cx, cy, pr);
+      pg.addColorStop(0, light ? '#0b1218' : '#02050a');
+      pg.addColorStop(0.82, light ? '#0d151c' : '#03070c');
+      pg.addColorStop(1, ok(c, 0.55, -0.35));
+      ctx.fillStyle = pg;
+      ctx.beginPath(); ctx.arc(cx, cy, pr, 0, Math.PI * 2); ctx.fill();
+      const hl = ctx.createRadialGradient(cx - pr * 0.36, cy - pr * 0.38, 0, cx - pr * 0.36, cy - pr * 0.38, pr * 0.34);
+      hl.addColorStop(0, 'rgba(255,255,255,0.55)');
+      hl.addColorStop(0.5, 'rgba(255,255,255,0.12)');
+      hl.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = hl;
+      ctx.beginPath(); ctx.arc(cx - pr * 0.36, cy - pr * 0.38, pr * 0.34, 0, Math.PI * 2); ctx.fill();
 
       if (!reduce) requestAnimationFrame(frame);
     };

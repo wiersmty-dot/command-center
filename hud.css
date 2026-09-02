@@ -123,16 +123,33 @@ a.tile:hover{transform:translateY(-2px)}
 .hud-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:13px}
 
 /* ---------------------------------------------------------------- hero ----
-   The living centerpiece: a canvas iris flanked by the four stat tiles. Flex
-   with source order [side-l, eye, side-r] and no forced height means a narrow
-   viewport wraps to a natural vertical stack with the eye still visually
-   central -- one layout, no separate mobile rule needed. */
-.hero{display:flex;align-items:center;justify-content:center;gap:20px;
-  flex-wrap:wrap;margin-bottom:16px}
-.hero-side{display:flex;flex-direction:column;gap:13px;flex:1 1 240px;min-width:200px;max-width:340px}
-.eye-wrap{flex:none;width:200px;height:200px;display:flex;align-items:center;justify-content:center}
+   The eye is the composition, not a garnish between columns. It fills the
+   band; the four readouts orbit it, staggered so they read as a ring rather
+   than two flat stacks. A radial vignette behind the band gives the object
+   atmosphere so it sits in space instead of on the grid. */
+.hero{position:relative;display:flex;align-items:center;justify-content:center;
+  gap:26px;flex-wrap:wrap;margin:6px 0 22px;padding:10px 0 4px;isolation:isolate}
+.hero:before{content:"";position:absolute;inset:-30px -10% -20px;z-index:-1;pointer-events:none;
+  background:radial-gradient(ellipse 55% 80% at 50% 50%,
+    oklch(0.82 0.13 215 / 10%),oklch(0.82 0.13 215 / 3%) 45%,transparent 72%)}
+:root.light .hero:before,body.light .hero:before{
+  background:radial-gradient(ellipse 55% 80% at 50% 50%,
+    oklch(0.48 0.13 235 / 9%),oklch(0.48 0.13 235 / 2%) 45%,transparent 72%)}
+.hero-side{display:flex;flex-direction:column;gap:14px;flex:1 1 230px;min-width:200px;max-width:300px}
+/* stagger: left column rides high, right column rides low, so the pair
+   reads as points on an orbit around the centre object */
+.hero-side:first-child{transform:translateY(-14px)}
+.hero-side:last-child{transform:translateY(14px)}
+.hero-side .tile{padding:12px 14px}
+.hero-side .stat-value{font-size:30px}
+.eye-wrap{flex:none;width:340px;height:340px;display:flex;align-items:center;justify-content:center}
 .eye-wrap canvas{width:100%;height:100%;display:block}
-@media (min-width:1180px){.eye-wrap{width:236px;height:236px}}
+@media (min-width:1180px){.eye-wrap{width:420px;height:420px}}
+@media (min-width:1400px){.eye-wrap{width:460px;height:460px}}
+@media (max-width:820px){
+  .hero-side:first-child,.hero-side:last-child{transform:none}
+  .eye-wrap{width:280px;height:280px}
+}
 
 .stat-value{font:700 34px 'JetBrains Mono',monospace;letter-spacing:.01em;line-height:1;
   color:var(--ink);font-variant-numeric:tabular-nums}
