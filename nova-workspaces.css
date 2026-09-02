@@ -35,9 +35,9 @@
    verbatim rather than re-picked by eye.
    ========================================================================= */
 :root{
-  --flow-core:#a6e22e;
-  --flow-1:#54a83f; --flow-2:#2f86cc; --flow-3:#bf8620;
-  --flow-4:#7a5cc4; --flow-5:#c04a3c; --flow-6:#1f9683;
+  --flow-core:#3dff6e;
+  --flow-1:#43ad50; --flow-2:#3470d0; --flow-3:#b07e1a;
+  --flow-4:#1f9e8a; --flow-5:#c25526; --flow-6:#2a90c6;
 }
 
 .agent-map{

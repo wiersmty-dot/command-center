@@ -9,7 +9,9 @@
 /* NOVA Control - operational dashboard.
  *
  * Series colours are the validated categorical order from the dataviz skill
- * (validate_palette.js, dark surface, all six checks pass). They are assigned in
+ * (validate_palette.js, dark surface, all checks pass, re-run for the green
+ * retheme: green, blue, amber, teal, orange, cyan -- no violet, which failed
+ * against blue). They are assigned in
  * fixed order and never cycled. Status colours are separate and reserved, so a
  * state can never impersonate a series. Every series is also direct-labelled,
  * because the green slot warns at 2.9:1 on the light surface and the skill
@@ -22,7 +24,7 @@
   --brand:#a6e22e;                      /* the lime the references lead with */
   --on-brand:#0d1211;
   --good:#4ec38a; --warn:#e0a33c; --crit:#e0685a;
-  --s1:#54a83f; --s2:#2f86cc; --s3:#bf8620; --s4:#7a5cc4; --s5:#c04a3c; --s6:#1f9683;
+  --s1:#43ad50; --s2:#3470d0; --s3:#b07e1a; --s4:#1f9e8a; --s5:#c25526; --s6:#2a90c6;
   --r:12px;
   --sans:'Outfit',system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
 }

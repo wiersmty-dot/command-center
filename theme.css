@@ -15,17 +15,17 @@
      Values read out of design/Jarvis Dashboards.dc.html, not estimated.
      The previous warm-orange palette (turn 3a) is kept verbatim under
      .orange below; add that class to <html> to get it back. */
-  --bg:        #04070d;
-  --panel:     #0a0e14;
-  --panel-2:   #101823;
-  --line:      rgba(0, 229, 255, .16);
-  --line-soft: rgba(0, 229, 255, .08);
+  --bg:        #0b1513;   /* deep teal-black, matches hud.css --ground */
+  --panel:     #0f1c19;
+  --panel-2:   #14241f;
+  --line:      rgba(61, 255, 110, .18);
+  --line-soft: rgba(61, 255, 110, .09);
   --ink:       #e8f6fa;
   --ink-2:     rgba(232, 246, 250, .72);
   --dim:       #5f8b99;
-  --accent:    #00e5ff;
+  --accent:    #3dff6e;   /* mirrored green; was the Jarvis cyan */
   --on-accent: #04070d;
-  --accent-wash: rgba(0, 229, 255, .12);
+  --accent-wash: rgba(61, 255, 110, .12);
   --ok:        #3dffa0;
   --warn:      #ffb454;
   --bad:       #ff6b5e;

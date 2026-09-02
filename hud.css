@@ -4,10 +4,11 @@
  * Command Center cannot drift apart. mission.js used to inline this; it now
  * links this file, so there is exactly one copy.
  *
- * The system is ported from ~/Documents/DailyHub: the `.tile` glass primitive
- * (src/styles.css) and the oklch tokens in src/lib/hud-tokens.ts -- same glass,
- * same masked gradient rim, same depth tiers and accent hues. That app has a
- * build step; this server hands out static files, so it is plain CSS.
+ * Visual language mirrored (2026-09-02) from a big-screen data-vis reference:
+ * neon green on a near-black deep-teal ground with a starfield, open sections
+ * delimited by hatch-and-hairline headers rather than cards, a chamfered title
+ * bracket. It replaced the earlier DailyHub glass-tile port. Selector names
+ * were kept so every page continues to work; only the treatment changed.
  *
  * Vocabulary:
  *   .hud .hud-wrap            page ground (grid + radial glow) and column
@@ -27,97 +28,120 @@
  * TYPE. The Daily Hub sets tile titles at 10px and meta at 9px. This build
  * floors both at 11px, matching build-orbit.py's map_size().
  */
-.hud{--cy:oklch(0.82 0.13 215);--cy-br:oklch(0.95 0.13 200);
-  --amber:oklch(0.82 0.17 75);--coral:oklch(0.70 0.18 25);--emerald:oklch(0.78 0.16 155);
-  --glass:oklch(0.30 0.06 235 / 5%);--glass-ghost:oklch(0.30 0.06 235 / 1.5%);
-  --glass-lift:oklch(0.30 0.06 235 / 4%);
-  --grid:oklch(0.82 0.13 215 / 8%);--ring:oklch(0.92 0.16 200);
-  --ink:oklch(0.95 0.02 230);--ink-2:oklch(0.82 0.05 230 / 82%);
-  --dim:oklch(0.80 0.05 230 / 78%);--ground:oklch(0.16 0.03 240);
+/* PALETTE. Mirrored from a big-screen data-vis reference: neon green on a
+   near-black deep-teal ground with a starfield. The token NAMES --cy/--cy-br
+   are kept, because mission.js, hud-skin.css and every page read them; only
+   the values move. --acc is the honest alias for new rules. */
+.hud{--acc:oklch(0.88 0.24 148);--acc-br:oklch(0.94 0.22 150);
+  --cy:var(--acc);--cy-br:var(--acc-br);
+  --acc-dim:oklch(0.88 0.24 148 / 22%);--acc-line:oklch(0.88 0.24 148 / 30%);
+  --amber:oklch(0.82 0.17 75);--coral:oklch(0.70 0.18 25);--emerald:var(--acc);
+  --orange:oklch(0.72 0.20 45);--blue:oklch(0.70 0.16 250);--teal:oklch(0.82 0.13 200);
+  --glass:transparent;--glass-ghost:transparent;--glass-lift:transparent;
+  --ring:var(--acc-br);
+  --ink:oklch(0.95 0.02 160);--ink-2:oklch(0.85 0.03 160 / 85%);
+  --dim:oklch(0.76 0.05 160 / 78%);--ground:oklch(0.12 0.02 195);
   --ease:cubic-bezier(0.16,1,0.3,1);--mid:250ms;
   min-height:100vh;color:var(--ink);background:var(--ground);
   font-family:'Rajdhani',system-ui,sans-serif;
+  /* starfield: three tiled layers of faint dots at different scales, plus a
+     soft radial lift behind the centre and a vignette at the edges. Static,
+     like the reference; no JS. */
   background-image:
-    radial-gradient(ellipse at 50% -12%,oklch(0.82 0.13 215 / 14%),transparent 46rem),
-    linear-gradient(var(--grid) 1px,transparent 1px),
-    linear-gradient(90deg,var(--grid) 1px,transparent 1px);
-  background-size:auto,44px 44px,44px 44px}
-:root.light .hud,body.light .hud{--ground:oklch(0.95 0.01 230);--ink:oklch(0.22 0.03 240);
-  --ink-2:oklch(0.30 0.03 240);--dim:oklch(0.38 0.03 240);
-  --glass:oklch(1 0 0 / 62%);--glass-ghost:oklch(1 0 0 / 42%);--glass-lift:oklch(1 0 0 / 74%);
-  --cy:oklch(0.48 0.13 235);--cy-br:oklch(0.42 0.14 240);--grid:oklch(0.48 0.13 235 / 9%);
-  /* The semantic hues were tuned for a dark ground and were being carried into
-     light unchanged: --amber on paper measured 1.58:1, so an empty-state
-     heading was effectively invisible. Darkened here rather than at each call
-     site, so every page that names a state gets the readable one. */
-  --amber:oklch(0.52 0.13 75);--coral:oklch(0.50 0.19 25);--emerald:oklch(0.48 0.13 155)}
+    radial-gradient(ellipse 60% 50% at 50% 42%,oklch(0.30 0.06 180 / 55%),transparent 70%),
+    radial-gradient(1px 1px at 20% 30%,oklch(0.95 0.02 160 / 60%) 50%,transparent 51%),
+    radial-gradient(1px 1px at 70% 60%,oklch(0.95 0.02 160 / 45%) 50%,transparent 51%),
+    radial-gradient(1.4px 1.4px at 45% 80%,oklch(0.95 0.02 160 / 55%) 50%,transparent 51%),
+    radial-gradient(1px 1px at 85% 15%,oklch(0.95 0.02 160 / 40%) 50%,transparent 51%),
+    radial-gradient(1px 1px at 10% 75%,oklch(0.95 0.02 160 / 35%) 50%,transparent 51%);
+  background-size:auto,220px 220px,340px 340px,460px 460px,180px 180px,290px 290px;
+  background-attachment:fixed}
+:root.light .hud,body.light .hud{--ground:oklch(0.96 0.01 160);--ink:oklch(0.20 0.03 170);
+  --ink-2:oklch(0.30 0.03 170);--dim:oklch(0.40 0.03 170);
+  --acc:oklch(0.50 0.17 150);--acc-br:oklch(0.44 0.17 152);--cy:var(--acc);--cy-br:var(--acc-br);
+  --acc-dim:oklch(0.50 0.17 150 / 22%);--acc-line:oklch(0.50 0.17 150 / 32%);
+  --amber:oklch(0.52 0.13 75);--coral:oklch(0.50 0.19 25);--emerald:var(--acc);
+  --orange:oklch(0.52 0.16 45);--blue:oklch(0.48 0.14 250);--teal:oklch(0.50 0.11 200);
+  background-image:none}
 
 .hud-wrap{max-width:1600px;margin:0 auto;padding:16px 22px 40px}
 
-.hud-strip{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px}
-.hud-pill{display:inline-flex;align-items:center;gap:9px;min-height:36px;padding:0 15px;
-  border-radius:999px;background:var(--glass);backdrop-filter:blur(8px) saturate(140%);
-  -webkit-backdrop-filter:blur(8px) saturate(140%);
-  box-shadow:0 1px 0 oklch(0.92 0.16 200 / 45%) inset,0 0 20px oklch(0.82 0.13 215 / 14%);
+.hud-strip{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.hud-pill{display:inline-flex;align-items:center;gap:9px;min-height:32px;padding:0 14px;
+  border-radius:2px;border:1px solid var(--acc-line);background:transparent;
   font:600 11px 'JetBrains Mono',monospace;letter-spacing:.18em;text-transform:uppercase;
   color:var(--dim);text-decoration:none}
 a.hud-pill{color:var(--dim);text-decoration:none;
-  /* `.tile` sets color:inherit for the same reason -- an <a> otherwise takes the
-     UA link colour. These pills already rendered correctly without it; this
-     states the intent rather than relying on it, and costs nothing. */
-  transition:color var(--mid) var(--ease),box-shadow var(--mid) var(--ease)}
-a.hud-pill:hover{color:var(--ink)}
-a.hud-pill[aria-current="page"]{color:var(--cy-br)}
+  transition:color var(--mid) var(--ease),background var(--mid) var(--ease)}
+a.hud-pill:hover{color:var(--ink);background:oklch(0.88 0.24 148 / 8%)}
+a.hud-pill[aria-current="page"]{color:var(--acc-br);background:var(--acc-dim);border-color:var(--acc)}
 
-.hud-head{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;margin:6px 0 18px}
-.hud-title{margin:0;font-family:'Michroma',sans-serif;font-size:26px;line-height:1.1;
-  letter-spacing:.16em;color:var(--ink);text-shadow:0 0 22px oklch(0.82 0.13 215 / 45%)}
-.hud-sub{margin-top:7px;font:600 11px 'JetBrains Mono',monospace;letter-spacing:.28em;
-  text-transform:uppercase;color:var(--cy)}
-.hud-clock{margin-left:auto;text-align:right}
-.hud-time{font:700 22px 'JetBrains Mono',monospace;letter-spacing:.06em;color:var(--ink);
+/* TITLE BRACKET. The reference centres its title in a chamfered banner with
+   diagonal hazard hatches either side. clip-path strips borders, so the
+   stroke is faked: the block is filled accent, and ::before is the ground
+   inset by the stroke width with the same polygon. The hatches are ::after. */
+.hud-head{position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+  gap:20px;margin:0 0 20px;min-height:64px}
+.hud-head>div:first-child{position:relative;grid-column:2;justify-self:center;
+  padding:12px 42px 10px;text-align:center;background:var(--acc);
+  clip-path:polygon(0 0,100% 0,100% 62%,calc(100% - 22px) 100%,22px 100%,0 62%)}
+.hud-head>div:first-child:before{content:"";position:absolute;inset:1.5px;z-index:0;
+  background:var(--ground);clip-path:inherit}
+.hud-title{position:relative;z-index:1;margin:0;font-family:'Michroma',sans-serif;font-size:22px;
+  line-height:1.15;letter-spacing:.14em;color:var(--ink);text-shadow:0 0 18px var(--acc-dim)}
+.hud-sub{position:relative;z-index:1;margin-top:5px;font:600 10.5px 'JetBrains Mono',monospace;
+  letter-spacing:.28em;text-transform:uppercase;color:var(--acc)}
+/* hatch runs flanking the bracket: green / orange / teal strokes, then a
+   hairline out to the edge, mirrored on both sides */
+.hud-head:before,.hud-head:after{content:"";position:absolute;top:50%;height:8px;
+  width:calc(50% - 250px);max-width:420px;transform:translateY(-50%);pointer-events:none;
+  background:
+    repeating-linear-gradient(115deg,var(--acc) 0 3px,transparent 3px 8px,var(--orange) 8px 11px,
+      transparent 11px 16px,var(--teal) 16px 19px,transparent 19px 24px,var(--acc) 24px 27px,
+      transparent 27px 40px) left/40px 100% no-repeat,
+    linear-gradient(var(--acc-line),var(--acc-line)) 46px 50%/calc(100% - 46px) 1px no-repeat}
+.hud-head:before{left:0}
+.hud-head:after{right:196px;transform:translateY(-50%) scaleX(-1)}
+.hud-clock{position:absolute;right:0;top:-2px;text-align:right}
+.hud-time{font:700 20px 'JetBrains Mono',monospace;letter-spacing:.06em;color:var(--acc);
   font-variant-numeric:tabular-nums;line-height:1}
-.hud-day{margin-top:5px;font:500 11px 'JetBrains Mono',monospace;letter-spacing:.2em;
+.hud-day{margin-top:4px;font:500 10.5px 'JetBrains Mono',monospace;letter-spacing:.2em;
   text-transform:uppercase;color:var(--dim)}
 
-.tile{position:relative;display:flex;flex-direction:column;min-width:0;padding:14px 15px;
-  border-radius:10px;overflow:hidden;background:var(--glass);
-  backdrop-filter:blur(8px) saturate(140%);-webkit-backdrop-filter:blur(8px) saturate(140%);
-  box-shadow:0 1px 0 oklch(0.92 0.16 200 / 55%) inset,0 -1px 0 oklch(0.92 0.16 200 / 25%) inset,
-    0 0 28px oklch(0.82 0.13 215 / 18%),0 10px 32px oklch(0.04 0.02 240 / 35%);
-  color:inherit;text-decoration:none}
-.tile:before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;
-  pointer-events:none;background:linear-gradient(135deg,
-    oklch(0.92 0.16 200 / 75%) 0%,oklch(0.82 0.13 215 / 15%) 35%,
-    oklch(0.82 0.13 215 / 15%) 65%,oklch(0.92 0.16 200 / 65%) 100%);
-  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-  -webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-  mask-composite:exclude}
-.tile--lifted{background:var(--glass-lift);
-  box-shadow:0 1px 0 oklch(0.92 0.16 200 / 70%) inset,0 -1px 0 oklch(0.92 0.16 200 / 35%) inset,
-    0 0 40px oklch(0.82 0.13 215 / 22%),0 18px 48px oklch(0.04 0.02 240 / 55%)}
-.tile--ghost{background:var(--glass-ghost)}
-.tile--amber:before{background:linear-gradient(135deg,oklch(0.90 0.18 80 / 70%),oklch(0.82 0.17 75 / 12%) 35%,oklch(0.82 0.17 75 / 12%) 65%,oklch(0.90 0.18 80 / 60%))}
-.tile--green:before{background:linear-gradient(135deg,oklch(0.85 0.18 155 / 70%),oklch(0.78 0.16 155 / 12%) 35%,oklch(0.78 0.16 155 / 12%) 65%,oklch(0.85 0.18 155 / 60%))}
-a.tile{transition:transform var(--mid) var(--ease),box-shadow var(--mid) var(--ease)}
+/* SECTIONS. The reference has no cards: every block is open, delimited by
+   its header (label, hatch run, hairline to the edge) and nothing else. The
+   .tile selectors stay so every page keeps working; the box goes away. */
+.tile{position:relative;display:flex;flex-direction:column;min-width:0;padding:6px 2px 10px;
+  border-radius:0;overflow:visible;background:transparent;color:inherit;text-decoration:none}
+.tile:before{content:none}
+.tile--lifted,.tile--ghost{background:transparent;box-shadow:none}
+.tile--amber:before,.tile--green:before{content:none}
+a.tile{transition:transform var(--mid) var(--ease)}
 a.tile:hover{transform:translateY(-2px)}
 .tile:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
 
-.tile-head{position:relative;z-index:2;display:flex;align-items:center;
-  justify-content:space-between;gap:9px;margin-bottom:8px}
-.tile-name{display:flex;align-items:center;gap:8px;min-width:0}
-.tile-title{margin:0;font:600 11px 'JetBrains Mono',monospace;letter-spacing:.18em;
-  text-transform:uppercase;color:var(--cy);white-space:nowrap;overflow:hidden;
+.tile-head{position:relative;z-index:2;display:flex;align-items:center;gap:12px;
+  margin-bottom:12px;padding-bottom:0}
+/* the section-header motif: label, then a short hatch run, then a hairline
+   that runs to the right edge */
+.tile-head:after{content:"";flex:1;height:8px;min-width:40px;
+  background:
+    repeating-linear-gradient(115deg,var(--acc) 0 3px,transparent 3px 7px) left/26px 100% no-repeat,
+    linear-gradient(var(--acc-line),var(--acc-line)) 30px 50%/calc(100% - 30px) 1px no-repeat}
+.tile-name{display:flex;align-items:center;gap:8px;min-width:0;order:0}
+.tile-title{margin:0;font:600 12.5px 'JetBrains Mono',monospace;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--acc);white-space:nowrap;overflow:hidden;
   text-overflow:ellipsis}
 .tile--amber .tile-title{color:var(--amber)}
-.tile--green .tile-title{color:var(--emerald)}
-.tile-meta{flex-shrink:0;font:500 11px 'JetBrains Mono',monospace;letter-spacing:.18em;
+.tile--green .tile-title{color:var(--acc)}
+.tile-meta{order:2;flex-shrink:0;font:500 11px 'JetBrains Mono',monospace;letter-spacing:.18em;
   text-transform:uppercase;color:var(--dim)}
+.tile-head:after{order:1}
 .dot{width:7px;height:7px;flex-shrink:0;border-radius:50%}
 .dot[data-s="live"]{background:var(--emerald);box-shadow:0 0 8px var(--emerald)}
 .dot[data-s="warn"]{background:var(--amber);box-shadow:0 0 8px var(--amber)}
 .dot[data-s="alert"]{background:var(--coral);box-shadow:0 0 8px var(--coral)}
-.dot[data-s="info"]{background:var(--cy);box-shadow:0 0 8px var(--cy)}
+.dot[data-s="info"]{background:var(--acc);box-shadow:0 0 8px var(--acc)}
 .tile-body{position:relative;z-index:2;display:flex;flex-direction:column;flex:1;min-height:0}
 
 .hud-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:13px}
@@ -131,17 +155,17 @@ a.tile:hover{transform:translateY(-2px)}
   gap:26px;flex-wrap:wrap;margin:6px 0 22px;padding:10px 0 4px;isolation:isolate}
 .hero:before{content:"";position:absolute;inset:-30px -10% -20px;z-index:-1;pointer-events:none;
   background:radial-gradient(ellipse 55% 80% at 50% 50%,
-    oklch(0.82 0.13 215 / 10%),oklch(0.82 0.13 215 / 3%) 45%,transparent 72%)}
+    oklch(0.88 0.24 148 / 9%),oklch(0.88 0.24 148 / 2.5%) 45%,transparent 72%)}
 :root.light .hero:before,body.light .hero:before{
   background:radial-gradient(ellipse 55% 80% at 50% 50%,
-    oklch(0.48 0.13 235 / 9%),oklch(0.48 0.13 235 / 2%) 45%,transparent 72%)}
+    oklch(0.50 0.17 150 / 8%),oklch(0.50 0.17 150 / 2%) 45%,transparent 72%)}
 .hero-side{display:flex;flex-direction:column;gap:14px;flex:1 1 230px;min-width:200px;max-width:300px}
 /* stagger: left column rides high, right column rides low, so the pair
    reads as points on an orbit around the centre object */
 .hero-side:first-child{transform:translateY(-14px)}
 .hero-side:last-child{transform:translateY(14px)}
-.hero-side .tile{padding:12px 14px}
-.hero-side .stat-value{font-size:30px}
+.hero-side .tile{padding:4px 2px 8px}
+.hero-side .stat-value{font-size:32px}
 .eye-wrap{flex:none;width:340px;height:340px;display:flex;align-items:center;justify-content:center}
 .eye-wrap canvas{width:100%;height:100%;display:block}
 @media (min-width:1180px){.eye-wrap{width:420px;height:420px}}
@@ -150,13 +174,14 @@ a.tile:hover{transform:translateY(-2px)}
   .hero-side:first-child,.hero-side:last-child{transform:none}
   .eye-wrap{width:280px;height:280px}
 }
-
-.stat-value{font:700 34px 'JetBrains Mono',monospace;letter-spacing:.01em;line-height:1;
-  color:var(--ink);font-variant-numeric:tabular-nums}
+.hero-side /* KPI: label above (the tile head), large number in the accent, tiny unit
+   caption below -- the reference's Overview trio. */
+.stat-value{font:700 40px 'JetBrains Mono',monospace;letter-spacing:.01em;line-height:1;
+  color:var(--acc);font-variant-numeric:tabular-nums;text-shadow:0 0 16px var(--acc-dim)}
 .stat-sub{margin-top:8px;font:500 11px 'JetBrains Mono',monospace;letter-spacing:.14em;
   text-transform:uppercase;color:var(--dim)}
 .stat-go{margin-top:9px;opacity:0;font:600 11px 'JetBrains Mono',monospace;
-  letter-spacing:.14em;text-transform:uppercase;color:var(--cy);
+  letter-spacing:.14em;text-transform:uppercase;color:var(--acc);
   transition:opacity var(--mid) var(--ease)}
 a.tile:hover .stat-go,a.tile:focus-visible .stat-go{opacity:1}
 
@@ -164,63 +189,63 @@ a.tile:hover .stat-go,a.tile:focus-visible .stat-go{opacity:1}
 .hud-col{display:flex;flex-direction:column;gap:13px;min-width:0}
 
 .row{display:flex;gap:12px;align-items:flex-start;padding:10px 0;
-  border-top:1px solid oklch(0.82 0.13 215 / 16%)}
+  border-top:1px solid var(--acc-dim)}
 .row:first-of-type{border-top:0;padding-top:2px}
-.row-time{flex:0 0 54px;font:600 13px 'JetBrains Mono',monospace;color:var(--cy);
+.row-time{flex:0 0 54px;font:600 13px 'JetBrains Mono',monospace;color:var(--acc);
   font-variant-numeric:tabular-nums}
 .row-main{flex:1;min-width:0}
 .row-title{font-size:14px;line-height:1.4;color:var(--ink)}
 .row-sub{margin-top:4px;font:500 11px 'JetBrains Mono',monospace;letter-spacing:.12em;
   text-transform:uppercase;color:var(--dim)}
-.chip{flex-shrink:0;padding:4px 8px;border-radius:4px;
-  border:1px solid oklch(0.82 0.13 215 / 32%);font:600 11px 'JetBrains Mono',monospace;
+.chip{flex-shrink:0;padding:4px 8px;border-radius:2px;
+  border:1px solid var(--acc-line);font:600 11px 'JetBrains Mono',monospace;
   letter-spacing:.1em;text-transform:uppercase;color:var(--dim);white-space:nowrap}
-.chip[data-t="go"]{color:var(--emerald);border-color:oklch(0.78 0.16 155 / 48%)}
+.chip[data-t="go"]{color:var(--acc);border-color:var(--acc);background:var(--acc-dim)}
 .chip[data-t="warn"]{color:var(--amber);border-color:oklch(0.82 0.17 75 / 48%)}
-.chip[data-t="live"]{color:var(--cy);border-color:oklch(0.82 0.13 215 / 58%)}
-.vent{padding:11px 0 3px;border-top:1px solid oklch(0.82 0.13 215 / 16%)}
+.chip[data-t="live"]{color:var(--teal);border-color:oklch(0.82 0.13 200 / 55%)}
+.vent{padding:11px 0 3px;border-top:1px solid var(--acc-dim)}
 .vent:first-of-type{border-top:0;padding-top:2px}
 .vent-head{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:7px}
 .vent-id{font:700 13px 'JetBrains Mono',monospace;letter-spacing:.14em;color:var(--ink)}
 .vent-body{margin:0 0 8px;font-size:14px;line-height:1.5;color:var(--ink-2)}
-.link{display:inline-flex;align-items:center;min-height:32px;padding:0 12px;
-  border-radius:999px;border:1px solid oklch(0.82 0.13 215 / 55%);
-  background:oklch(0.82 0.13 215 / 12%);color:var(--cy);text-decoration:none;
+.link{display:inline-flex;align-items:center;min-height:30px;padding:0 12px;
+  border-radius:2px;border:1px solid var(--acc);
+  background:var(--acc-dim);color:var(--acc-br);text-decoration:none;
   font:600 11px 'JetBrains Mono',monospace;letter-spacing:.12em;text-transform:uppercase;
   transition:background var(--mid) var(--ease)}
-.link:hover{background:oklch(0.82 0.13 215 / 24%)}
+.link:hover{background:oklch(0.88 0.24 148 / 32%)}
 
 .ask{display:flex;flex-direction:column;gap:9px}
 .ask-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .ask label{font:600 11px 'JetBrains Mono',monospace;letter-spacing:.16em;
   text-transform:uppercase;color:var(--dim)}
-.ask textarea{width:100%;min-height:66px;resize:vertical;padding:10px 11px;border-radius:6px;
-  border:1px solid oklch(0.82 0.13 215 / 38%);background:oklch(0.30 0.06 235 / 12%);
+.ask textarea{width:100%;min-height:66px;resize:vertical;padding:10px 11px;border-radius:2px;
+  border:1px solid var(--acc-line);background:oklch(0.20 0.03 190 / 55%);
   color:var(--ink);font:400 14px/1.5 'Rajdhani',system-ui,sans-serif}
 :root.light .ask textarea,body.light .ask textarea{background:oklch(1 0 0 / 70%)}
 .ask textarea::placeholder{color:var(--dim)}
-.ask select{min-height:32px;padding:0 8px;border-radius:6px;
-  border:1px solid oklch(0.82 0.13 215 / 38%);background:oklch(0.30 0.06 235 / 12%);
+.ask select{min-height:32px;padding:0 8px;border-radius:2px;
+  border:1px solid var(--acc-line);background:oklch(0.20 0.03 190 / 55%);
   color:var(--ink);font:600 11px 'JetBrains Mono',monospace;letter-spacing:.08em}
 :root.light .ask select,body.light .ask select{background:oklch(1 0 0 / 70%)}
-.ask button{min-height:32px;padding:0 14px;border-radius:999px;cursor:pointer;
-  border:1px solid oklch(0.82 0.13 215 / 55%);background:oklch(0.82 0.13 215 / 14%);
-  color:var(--cy);font:600 11px 'JetBrains Mono',monospace;letter-spacing:.12em;
+.ask button{min-height:32px;padding:0 14px;border-radius:2px;cursor:pointer;
+  border:1px solid var(--acc);background:var(--acc-dim);
+  color:var(--acc-br);font:600 11px 'JetBrains Mono',monospace;letter-spacing:.12em;
   text-transform:uppercase;transition:background var(--mid) var(--ease)}
-.ask button:hover:not(:disabled){background:oklch(0.82 0.13 215 / 26%)}
+.ask button:hover:not(:disabled){background:oklch(0.88 0.24 148 / 34%)}
 .ask button:disabled{opacity:.45;cursor:not-allowed}
 .ask button[data-stop]{border-color:oklch(0.70 0.18 25 / 60%);
   background:oklch(0.70 0.18 25 / 14%);color:var(--coral)}
 .ask :is(textarea,select,button):focus-visible{outline:2px solid var(--ring);outline-offset:2px}
 .ask-state{font:600 11px 'JetBrains Mono',monospace;letter-spacing:.14em;
   text-transform:uppercase;color:var(--dim)}
-.ask-out{margin:0;max-height:230px;overflow:auto;padding:10px 11px;border-radius:6px;
-  background:oklch(0.30 0.06 235 / 14%);border:1px solid oklch(0.82 0.13 215 / 18%);
+.ask-out{margin:0;max-height:230px;overflow:auto;padding:10px 11px;border-radius:2px;
+  background:oklch(0.20 0.03 190 / 55%);border:1px solid var(--acc-dim);
   font:400 12px/1.55 'JetBrains Mono',monospace;color:var(--ink-2);
   white-space:pre-wrap;word-break:break-word}
 :root.light .ask-out,body.light .ask-out{background:oklch(1 0 0 / 62%)}
 .missing{margin:0 0 11px;padding:0;list-style:none}
-.missing li{padding:8px 0;border-top:1px solid oklch(0.82 0.13 215 / 16%)}
+.missing li{padding:8px 0;border-top:1px solid var(--acc-dim)}
 .missing li:first-child{border-top:0;padding-top:2px}
 .missing b{display:block;margin-bottom:3px;font:600 11px 'JetBrains Mono',monospace;
   letter-spacing:.14em;text-transform:uppercase;color:var(--amber)}
@@ -231,7 +256,7 @@ a.tile:hover .stat-go,a.tile:focus-visible .stat-go{opacity:1}
 
 .skip{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
   clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;background:var(--cy-br);
-  color:oklch(0.16 0.03 240);border-radius:6px;text-decoration:none;
+  color:oklch(0.12 0.02 195);border-radius:2px;text-decoration:none;
   font:600 12px 'JetBrains Mono',monospace;letter-spacing:.1em}
 .skip:focus{position:fixed;left:14px;top:14px;z-index:60;width:auto;height:auto;
   margin:0;padding:11px 15px;overflow:visible;clip:auto;clip-path:none}
@@ -239,6 +264,12 @@ a.tile:hover .stat-go,a.tile:focus-visible .stat-go{opacity:1}
 @media (max-width:1180px){
   .hud-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   .hud-grid{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:900px){
+  .hud-head{grid-template-columns:1fr;min-height:0}
+  .hud-head>div:first-child{grid-column:1;padding:10px 24px 8px}
+  .hud-head:before,.hud-head:after{display:none}
+  .hud-clock{position:static;grid-column:1;justify-self:center;text-align:center;margin-top:8px}
 }
 @media (max-width:640px){
   .hud-stats{grid-template-columns:minmax(0,1fr)}
