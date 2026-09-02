@@ -2398,6 +2398,12 @@ class Handler(BaseHTTPRequestHandler):
         if route == "/mission.js":
             return self.send_file("mission.js", "application/javascript")
 
+        if route == "/hud-shell.js":
+            return self.send_file("hud-shell.js", "application/javascript")
+
+        if route == "/hud.css":
+            return self.send_file("hud.css", "text/css; charset=utf-8")
+
         if route == "/theme.css":
             return self.send_file("theme.css", "text/css; charset=utf-8")
 
