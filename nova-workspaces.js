@@ -73,10 +73,12 @@
 
   async function agents() {
     document.body.innerHTML = shell('agents', 'A governed agent field.', 'A read-only operating map of the runner: work flows through command, planning, verification, and bounded specialists. No external action happens without human approval.');
-    $('#workspace').innerHTML = `<section class="agent-layout"><aside class="nw-card agent-rail"><div class="nw-label">Architecture</div><ul><li>Command Orchestrator<span>routes intent and maintains state</span></li><li>Planner + Verifier<span>decompose and check bounded work</span></li><li>Specialists<span>research · build · operate · analyze</span></li></ul><div class="governance"><div><b>Read-only autonomy</b>Research and synthesis may proceed within the vault.</div><div><b>External actions</b>Outreach, purchases, legal conclusions, and changes require human approval.</div><div><b>Observability</b>Every run is streamed, logged, and archived.</div></div></aside><section class="nw-card agent-map" aria-label="Agent hierarchy"><button class="agent-node core" data-role="core"><b>Command<br>Orchestrator</b><small>routes + state</small></button><button class="agent-node planner" data-role="planner"><b>Planner</b><small>scope + sequence</small></button><button class="agent-node verifier" data-role="verifier"><b>Verifier</b><small>evidence + guardrails</small></button><button class="agent-node research" data-role="research"><b>Research</b><small>read-only discovery</small></button><button class="agent-node builder" data-role="builder"><b>Builder</b><small>draft + construct</small></button><button class="agent-node operator" data-role="operator"><b>Operator</b><small>local execution</small></button><button class="agent-node analyst" data-role="analyst"><b>Analyst</b><small>measure + interpret</small></button></section><aside class="nw-card agent-inspector"><div class="nw-label">Selected capability</div><div id="agent-detail"><h2>Command Orchestrator</h2><p>Coordinates eligible local work and keeps the operator in control of anything externally consequential.</p><span class="nw-pill ok">observed</span></div><div class="governance"><div><b>System rule</b>Skills execute with a durable run record; not all agents may change the outside world.</div></div></aside></section><section class="agent-observe"><section class="nw-card chief-station"><div class="nw-card-head"><div><h2>Chief of Staff dispatch</h2><p>Ask a question and watch the actual local run move through its lifecycle.</p></div><span class="nw-pill ok" id="chief-state">ready</span></div><div class="chief-body"><label class="nw-label" for="chief-question">Operator question</label><textarea id="chief-question" placeholder="What do you want the Chief of Staff to work through?"></textarea><div class="chief-actions"><button class="nw-button" id="chief-send">Dispatch to Chief of Staff</button><span class="nw-meta">Local work only · every output is archived</span></div><div class="trace" id="chief-trace"><div class="trace-step active" data-step="0"><b>Intake</b><span>question captured</span></div><div class="trace-step" data-step="1"><b>Plan</b><span>scope and constraints</span></div><div class="trace-step" data-step="2"><b>Work</b><span>local skill execution</span></div><div class="trace-step" data-step="3"><b>Verify</b><span>result checked for handoff</span></div><div class="trace-step" data-step="4"><b>Archive</b><span>run record written</span></div></div><div class="chief-output"><div class="nw-label">Live return</div><pre id="chief-log">Waiting for a Chief of Staff question.</pre></div></div></section><section class="nw-card agent-history"><div class="nw-card-head"><div><h2>Observed work</h2><p>Who ran, when they ran, and the returned record.</p></div><span class="nw-meta" id="history-count">loading</span></div><div id="agent-history-list"></div></section><section class="nw-card agent-inventory"><div class="nw-card-head"><div><h2>Agent registry</h2><p>Every installed agent, its role, backing skill, and recorded use.</p></div><span class="nw-meta" id="agent-count">loading</span></div><div id="agent-inventory-list"></div></section></section>`;
+    $('#workspace').innerHTML = `<section class="agent-layout"><aside class="nw-card agent-rail"><div class="nw-label">Architecture</div><ul><li>Command Orchestrator<span>routes intent and maintains state</span></li><li>Planner + Verifier<span>decompose and check bounded work</span></li><li>Specialists<span>research · build · operate · analyze</span></li></ul><div class="governance"><div><b>Read-only autonomy</b>Research and synthesis may proceed within the vault.</div><div><b>External actions</b>Outreach, purchases, legal conclusions, and changes require human approval.</div><div><b>Observability</b>Every run is streamed, logged, and archived.</div></div></aside><section class="nw-card agent-map" aria-label="Agent hierarchy"><svg class="agent-connectors"></svg><button class="agent-node core" data-role="core"><span class="badge"><i class="ph-fill ph-cpu"></i></span><span class="ntext"><b>Command<br>Orchestrator</b><small>routes + state</small></span></button><button class="agent-node planner" data-role="planner"><span class="badge"><i class="ph ph-map-trifold"></i></span><span class="ntext"><b>Planner</b><small>scope + sequence</small></span></button><button class="agent-node verifier" data-role="verifier"><span class="badge"><i class="ph ph-shield-check"></i></span><span class="ntext"><b>Verifier</b><small>evidence + guardrails</small></span></button><button class="agent-node research" data-role="research"><span class="badge"><i class="ph ph-magnifying-glass"></i></span><span class="ntext"><b>Research</b><small>read-only discovery</small></span></button><button class="agent-node builder" data-role="builder"><span class="badge"><i class="ph ph-hammer"></i></span><span class="ntext"><b>Builder</b><small>draft + construct</small></span></button><button class="agent-node operator" data-role="operator"><span class="badge"><i class="ph ph-play"></i></span><span class="ntext"><b>Operator</b><small>local execution</small></span></button><button class="agent-node analyst" data-role="analyst"><span class="badge"><i class="ph ph-chart-line-up"></i></span><span class="ntext"><b>Analyst</b><small>measure + interpret</small></span></button></section><aside class="nw-card agent-inspector"><div class="nw-label">Selected capability</div><div id="agent-detail"><h2>Command Orchestrator</h2><p>Coordinates eligible local work and keeps the operator in control of anything externally consequential.</p><span class="nw-pill ok">observed</span></div><div class="governance"><div><b>System rule</b>Skills execute with a durable run record; not all agents may change the outside world.</div></div></aside></section><section class="agent-observe"><section class="nw-card chief-station"><div class="nw-card-head"><div><h2>Chief of Staff dispatch</h2><p>Ask a question and watch the actual local run move through its lifecycle.</p></div><span class="nw-pill ok" id="chief-state">ready</span></div><div class="chief-body"><label class="nw-label" for="chief-question">Operator question</label><textarea id="chief-question" placeholder="What do you want the Chief of Staff to work through?"></textarea><div class="chief-actions"><button class="nw-button" id="chief-send">Dispatch to Chief of Staff</button><span class="nw-meta">Local work only · every output is archived</span></div><div class="trace" id="chief-trace"><div class="trace-step active" data-step="0"><b>Intake</b><span>question captured</span></div><div class="trace-step" data-step="1"><b>Plan</b><span>scope and constraints</span></div><div class="trace-step" data-step="2"><b>Work</b><span>local skill execution</span></div><div class="trace-step" data-step="3"><b>Verify</b><span>result checked for handoff</span></div><div class="trace-step" data-step="4"><b>Archive</b><span>run record written</span></div></div><div class="chief-output"><div class="nw-label">Live return</div><pre id="chief-log">Waiting for a Chief of Staff question.</pre></div></div></section><section class="nw-card agent-history"><div class="nw-card-head"><div><h2>Observed work</h2><p>Who ran, when they ran, and the returned record.</p></div><span class="nw-meta" id="history-count">loading</span></div><div id="agent-history-list"></div></section><section class="nw-card agent-inventory"><div class="nw-card-head"><div><h2>Agent registry</h2><p>Every installed agent, its role, backing skill, and recorded use.</p></div><span class="nw-meta" id="agent-count">loading</span></div><div id="agent-inventory-list"></div></section></section>`;
+    $('#workspace .agent-layout').insertAdjacentHTML('afterend', `<section class="agent-features"><div class="nw-card"><i class="ph ph-eye"></i><div><b>Read-only autonomy</b><span>Research and synthesis may proceed within the vault without approval.</span></div></div><div class="nw-card"><i class="ph ph-hand-palm"></i><div><b>External actions gated</b><span>Outreach, purchases, legal conclusions, and changes require human approval.</span></div></div><div class="nw-card"><i class="ph ph-recording"></i><div><b>Every run observed</b><span>Streamed, logged, and archived to the vault for later reading.</span></div></div><div class="nw-card"><i class="ph ph-link"></i><div><b id="feat-backed">&mdash;</b><span>agents backed by an installed skill file.</span></div></div></section>`);
     $('#workspace .agent-observe').insertAdjacentHTML('beforeend', `<section class="nw-card decision-inbox"><div class="nw-card-head"><div><h2>Founder review queue</h2><p>Returned work becomes a decision task: read the result, approve the local recommendation, or redirect the next run.</p></div><span class="nw-meta" id="decision-count">loading</span></div><div id="decision-task-list"></div></section>`);
     let data, history, orchestrationData;
     try { [data, history, orchestrationData] = await Promise.all([api('/api/agents'), api('/api/history?limit=80'), api('/api/orchestrations?limit=30')]); } catch (error) { $('#agent-detail').innerHTML = `<div class="nw-empty">Agent registry unavailable: ${esc(error.message)}</div>`; return; }
+    $('#feat-backed').textContent = `${data.withFile} / ${data.agents.length}`;
     const categories = {
       core: {title:'Command Orchestrator', note:'Routes user intent to a bounded skill, then records the output for review.', picks: data.agents.slice(0, 3)},
       planner: {title:'Planner', note:'Turns an objective into an ordered local workflow before execution.', picks: data.agents.filter(a => /plan|project|brief/i.test(`${a.label} ${a.group}`)).slice(0, 3)},
@@ -127,6 +129,7 @@
         $('#chief-log').textContent = `${agent.label}\n\nGroup: ${agent.group}\nRecorded runs: ${agent.runs}\nAverage duration: ${duration(agent.avg)}\nFaults: ${agent.faults}\n\nPrompt:\n${agent.prompt}`;
         $('#chief-state').textContent = agent.hasFile ? 'skill ready' : 'no skill file';
       });
+      updateLivePulse();
     };
     const drawDecisionQueue = () => {
       const tasks = (orchestrationData.orchestrations || []).filter(item => item.status === 'done' || item.status === 'fault');
@@ -179,7 +182,59 @@
         setTrace(1); poll();
       } catch (error) { $('#chief-log').textContent += `\n\nCould not start: ${error.message}`; $('#chief-state').textContent = 'failed'; send.textContent = 'Dispatch to Chief of Staff'; send.disabled = false; }
     };
-    document.querySelectorAll('.agent-node').forEach(button => button.onclick = () => select(button.dataset.role)); select('core'); drawObserved(); drawDecisionQueue();
+    // Curved connectors from the core node to each specialist, drawn from real
+    // rendered positions rather than duplicating the CSS percentages as numbers.
+    // A small dot travels each path toward whichever end is "downstream" (core
+    // for inbound roles, the specialist for outbound), giving the flow a
+    // direction without claiming a throughput number nothing here measures.
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function drawConnectors() {
+      const map = document.querySelector('.agent-map');
+      const svg = document.querySelector('.agent-connectors');
+      const core = document.querySelector('.agent-node.core');
+      if (!map || !svg || !core) return;
+      const mapBox = map.getBoundingClientRect();
+      const center = el => { const r = el.getBoundingClientRect();
+        return [r.left + r.width / 2 - mapBox.left, r.top + r.height / 2 - mapBox.top]; };
+      const [cx, cy] = center(core);
+      svg.setAttribute('viewBox', `0 0 ${mapBox.width} ${mapBox.height}`);
+      let html = '';
+      document.querySelectorAll('.agent-node:not(.core)').forEach(node => {
+        const [nx, ny] = center(node);
+        const role = node.dataset.role;
+        const color = getComputedStyle(node.querySelector('.badge')).backgroundColor;
+        const mx = (cx + nx) / 2, my = (cy + ny) / 2;
+        // bow the midpoint perpendicular to the chord so lines read as routed,
+        // not ruled straight through the diagram
+        const dx = nx - cx, dy = ny - cy, len = Math.hypot(dx, dy) || 1;
+        const bow = 22 * (my < cy ? -1 : 1);
+        const px = mx + (-dy / len) * bow, py = my + (dx / len) * bow;
+        const d = `M${cx},${cy} Q${px},${py} ${nx},${ny}`;
+        const id = `flow-${role}`;
+        html += `<path id="${id}" class="flowing" d="${d}" stroke="${color}"/>`;
+        if (!reduceMotion) {
+          html += `<circle r="2.6" fill="${color}"><animateMotion dur="2.4s" repeatCount="indefinite"
+            path="${d}"/></circle>`;
+        }
+      });
+      svg.innerHTML = html;
+    }
+    new ResizeObserver(() => drawConnectors()).observe(document.querySelector('.agent-map'));
+
+    // A node pulses when a job whose skill falls in that role's category is
+    // actually running right now — read from the same history feed the
+    // Observed-work list already renders, not a fabricated activity level.
+    function updateLivePulse() {
+      const runningSkills = new Set((history.runs || [])
+        .filter(r => r.status === 'running').map(r => r.skill));
+      Object.entries(categories).forEach(([key, cat]) => {
+        const isLive = (cat.picks || []).some(a => runningSkills.has(a.skill))
+          || data.agents.filter(a => cat.picks.includes(a)).some(a => runningSkills.has(a.skill));
+        document.querySelector(`.agent-node[data-role="${key}"]`)?.classList.toggle('live', isLive);
+      });
+    }
+
+    document.querySelectorAll('.agent-node').forEach(button => button.onclick = () => select(button.dataset.role)); select('core'); drawObserved(); drawDecisionQueue(); drawConnectors(); updateLivePulse();
   }
 
   async function vault() {
@@ -449,7 +504,7 @@
   }
   async function agentsReference() {
     document.body.innerHTML = shell('agents', '', '');
-    $('#workspace').innerHTML = `<section class="agents-reference"><aside class="reference-left"><div class="reference-label">Agent groups <button id="group-add">+</button></div><div id="agent-groups"></div><div class="reference-governance"><b>Governance</b><p>Local research and synthesis may run. External actions always require your approval.</p></div></aside><main class="agent-thread"><h1>Agents</h1><form class="ask-composer" id="chief-form"><textarea id="chief-question" aria-label="Ask Nova" placeholder="Ask Nova anything…"></textarea><button type="button" class="composer-tune" id="composer-tune">Scope</button><button class="nw-button" type="submit">Ask Nova</button></form><div class="reference-label today">Today</div><section id="work-feed" class="work-feed"></section></main><aside class="task-rail"><div id="task-rail"></div></aside></section>`;
+    $('#workspace').innerHTML = `<section class="agents-reference"><aside class="reference-left"><div class="reference-label">Agent groups <button id="group-add">+</button></div><div id="agent-groups"></div><div class="reference-governance"><b>Governance</b><p>Local research and synthesis may run. External actions always require your approval.</p></div></aside><main class="agent-thread"><h1>Agents</h1><form class="ask-composer" id="chief-form"><textarea id="chief-question" aria-label="Ask Nova" placeholder="Ask Nova anything…"></textarea><button type="button" class="composer-tune" id="composer-tune">Scope</button><button class="nw-button" type="submit">Ask Nova</button></form><section class="mission-flow" id="mission-flow"></section><div class="reference-label today">Today</div><section id="work-feed" class="work-feed"></section></main><aside class="task-rail"><div id="task-rail"></div></aside></section>`;
     let registry, orch, activeGroup = 'All agents', selectedTask = null;
     try { [registry, orch] = await Promise.all([api('/api/agents'), api('/api/orchestrations?limit=30')]); }
     catch (error) { $('#work-feed').innerHTML = `<div class="nw-empty">Nova is unavailable: ${esc(error.message)}</div>`; return; }
@@ -457,7 +512,69 @@
     const result = (item, index) => item?.stages?.[index]?.result || '';
     const latest = item => [...(item?.stages || [])].reverse().find(stage => stage.result)?.result || item?.error || '';
     const excerpt = (text, length = 560) => text ? `${text.slice(0, length)}${text.length > length ? '…' : ''}` : 'Waiting for this stage to return.';
-    const redraw = () => { drawGroups(); drawFeed(); drawRail(); };
+    // The mission workflow: the fixed, real Chief-of-Staff pipeline for the active
+    // task (server.py's run_orchestration -- four sequential stages, always in
+    // this order). Node colour is the same status semantics used everywhere
+    // else on this page (ok/warn/bad); nothing here is a fabricated percentage.
+    const FLOW_ICON = {
+      'venture-chief-of-staff': 'ph ph-compass',
+      'venture-thesis-scout': 'ph ph-magnifying-glass',
+      'venture-diligence-economics': 'ph ph-calculator',
+    };
+    const flowState = stage => !stage ? 'pending'
+      : stage.status === 'done' ? 'done' : stage.status === 'running' ? 'active'
+      : stage.status === 'fault' ? 'fault' : 'pending';
+    const connector = (fromState) => `<span class="flow-edge ${fromState === 'active' ? 'live' : ''} ${fromState === 'done' || fromState === 'active' ? 'on' : ''}">
+        <svg viewBox="0 0 48 24" preserveAspectRatio="none"><path d="M0,12 C16,12 16,12 24,12 C32,12 32,12 48,12"/></svg>
+      </span>`;
+    const flowNode = (icon, label, sub, state, onClick) => `<button class="flow-node ${state}" ${onClick ? `data-stage="${onClick}"` : 'disabled'}>
+        <span class="flow-badge"><i class="${icon}"></i></span>
+        <span class="flow-text"><b>${esc(label)}</b><small>${esc(sub)}</small></span>
+      </button>`;
+    const drawFlow = () => {
+      const host = $('#mission-flow');
+      const item = task();
+      if (!item) { host.innerHTML = ''; return; }
+      const stages = item.stages || [];
+      const review = item.review || {};
+      const decisionState = item.status !== 'done' ? 'pending'
+        : (review.status === 'approved' || review.status === 'rescope_requested') ? 'done' : 'active';
+      const completeState = review.status === 'approved' ? 'done'
+        : review.status === 'rescope_requested' ? 'fault' : 'pending';
+      const nodes = [
+        flowNode('ph ph-flag', 'Goal', esc((item.question || '').slice(0, 34)) || 'Question', 'goal'),
+        ...stages.map((st, i) => flowNode(FLOW_ICON[st.skill] || 'ph ph-robot', st.name,
+          st.status === 'running' ? 'running now' : st.status === 'done' ? 'returned' :
+          st.status === 'fault' ? 'faulted' : 'queued', flowState(st), i)),
+        flowNode('ph ph-user-check', 'Decision', decisionState === 'active' ? 'needs you' :
+          decisionState === 'done' ? 'reviewed' : 'awaiting run', decisionState, 'decision'),
+        flowNode('ph ph-flag-checkered', 'Complete', completeState === 'done' ? 'delivered' :
+          completeState === 'fault' ? 're-scoped' : 'in progress', completeState),
+      ];
+      const states = [null, ...stages.map(flowState), decisionState, completeState];
+      let row = nodes[0];
+      for (let i = 1; i < nodes.length; i++) row += connector(states[i]) + nodes[i];
+      host.innerHTML = `<div class="flow-head"><h2>Mission workflow</h2>
+          <span class="flow-sub">The fixed Chief-of-Staff pipeline for this task</span></div>
+        <div class="flow-row">${row}</div>
+        <div class="trace">${['Plan','Research','Diligence','Verify','Decision','Delivery'].map((label, i) => {
+          const st = [flowState(stages[0]), flowState(stages[1]), flowState(stages[2]), flowState(stages[3]),
+            decisionState, completeState][i];
+          return `<div class="trace-step ${st === 'done' ? 'done' : ''} ${st === 'active' ? 'active' : ''}">
+            <b>${esc(label)}</b></div>`;
+        }).join('')}</div>`;
+      host.querySelectorAll('.flow-node[data-stage]').forEach(button => button.onclick = () => {
+        const key = button.dataset.stage;
+        const body = key === 'decision' ? (result(item, 3) || 'No returned text yet.')
+          : result(item, Number(key)) || 'No returned text yet.';
+        button.closest('.flow-node').classList.add('selected');
+        host.querySelectorAll('.flow-node').forEach(b => { if (b !== button.closest('.flow-node')) b.classList.remove('selected'); });
+        const existing = host.querySelector('.flow-detail'); if (existing) existing.remove();
+        host.insertAdjacentHTML('beforeend', `<pre class="flow-detail">${esc(body.slice(0, 1400))}</pre>`);
+      });
+    };
+
+    const redraw = () => { drawGroups(); drawFeed(); drawRail(); drawFlow(); };
     const drawGroups = () => {
       const groups = ['All agents', ...Array.from(new Set(registry.agents.map(agent => agent.group || 'General'))).slice(0, 5)];
       $('#agent-groups').innerHTML = groups.map(group => { const count = group === 'All agents' ? registry.agents.length : registry.agents.filter(agent => agent.group === group).length; return `<button class="agent-group ${group === activeGroup ? 'selected' : ''}" data-group="${esc(group)}"><b>${esc(group)}</b><span>${count}</span></button>`; }).join('');
