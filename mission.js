@@ -55,7 +55,14 @@
       <div class="hud-day" id="hud-day"></div>
     </div>
   </header>
-  <section class="hud-stats" id="hud-stats" aria-label="Key indicators"></section>
+  <section class="hero" aria-label="Key indicators">
+    <div class="hero-side" id="hud-stats-l"></div>
+    <div class="eye-wrap">
+      <canvas id="nova-eye" width="280" height="280" role="img"
+        aria-label="System pulse: idle unless something is running or waiting on you"></canvas>
+    </div>
+    <div class="hero-side" id="hud-stats-r"></div>
+  </section>
   <main class="hud-grid" id="hud-main">
     <div class="hud-col">
       <section class="tile" id="t-vent"></section>
@@ -71,6 +78,7 @@
   </main>
 </div>`;
   document.body.appendChild(root);
+  startEye($('#nova-eye'));
 
   const tick = () => {
     const d = new Date();
@@ -79,6 +87,7 @@
       { weekday: 'short', month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase();
   };
   tick(); setInterval(tick, 1000);
+  setInterval(load, 20000);   // keep the eye and tiles honest between runs
 
   const api = async (p, f) => {
     try { const r = await fetch(p, { headers: { Accept: 'application/json' } });
@@ -87,6 +96,116 @@
   const ago = ts => { if (!ts) return ''; const s = Math.max(0, Math.floor(Date.now() / 1000 - ts));
     return s < 60 ? s + 's ago' : s < 3600 ? Math.floor(s / 60) + 'm ago'
       : s < 86400 ? Math.floor(s / 3600) + 'h ago' : Math.floor(s / 86400) + 'd ago'; };
+
+  /* The living centerpiece. A pupil, radiating spokes, and two concentric
+     rings, breathing and slowly turning -- built the same way particle-cloud.js
+     already animates the orbit page's orb (seeded PRNG, per-particle twinkle),
+     but structured as an iris rather than a diffuse cloud, and in the Mission
+     Control cyan rather than the orbit orange.
+
+     "Alive" is not purely decorative: canvas.dataset.mode is set in render()
+     from real state (a job actually running, or something actually waiting on
+     you) and read here every frame. Idle stays idle -- calm and slow. Nothing
+     is simulated that is not true. */
+  function startEye(canvas) {
+    if (!canvas) return;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    const size = canvas.width;                 // 280, set in the markup
+    canvas.width = size * dpr; canvas.height = size * dpr;
+    const ctx = canvas.getContext('2d');
+    const cx = size / 2, cy = size / 2;
+
+    let seed = 1337;
+    const rnd = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+
+    const N = 130;
+    const spokes = Array.from({ length: N }, () => ({
+      a: rnd() * Math.PI * 2,
+      len: 0.55 + rnd() * 0.34,
+      w: 0.5 + rnd() * 1.1,
+      ph: rnd() * Math.PI * 2,
+      tw: 0.6 + rnd() * 1.3,
+      flare: rnd() < 0.06,
+    }));
+
+    // Colour comes from the page's own theme tokens (hud.css), read fresh
+    // each frame, not hardcoded. hud.css already darkens these for the light
+    // background -- a fixed pale cyan drawn there was nearly invisible until
+    // this was checked against the actual light theme, not assumed from dark.
+    const hudEl = document.querySelector('.hud');
+    const tri = name => {
+      const raw = getComputedStyle(hudEl).getPropertyValue(name).trim();
+      const m = raw.match(/oklch\(([\d.]+)\s+([\d.]+)\s+([\d.]+)\)/);
+      return m ? [m[1], m[2], m[3]] : ['0.8', '0.13', '215'];
+    };
+    const ok = (t, a) => `oklch(${t[0]} ${t[1]} ${t[2]} / ${a})`;
+
+    const MODE = {
+      idle:   { tok: '--cy',    rot: 0.010, pulse: 0.55 },
+      active: { tok: '--cy-br', rot: 0.05,  pulse: 1.9 },
+      needs:  { tok: '--amber', rot: 0.02,  pulse: 1.1 },
+    };
+    const pupilR = size * 0.16, ringA = size * 0.30, ringB = size * 0.44, outerR = size * 0.47;
+
+    const frame = t => {
+      const time = t / 1000;
+      const mode = MODE[canvas.dataset.mode] || MODE.idle;
+      const c = tri(mode.tok);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, size, size);
+
+      // ambient glow behind everything
+      const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, outerR * 1.15);
+      glow.addColorStop(0, ok(c, 0.16));
+      glow.addColorStop(1, ok(c, 0));
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, size, size);
+
+      const breathe = 1 + 0.028 * Math.sin(time * mode.pulse * 0.6);
+
+      // two concentric rings
+      [ringA, ringB].forEach((r, i) => {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * breathe, 0, Math.PI * 2);
+        ctx.strokeStyle = ok(c, 0.22 - i * 0.06);
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
+
+      // radiating spokes, each independently twinkling
+      spokes.forEach(sp => {
+        const a = sp.a + time * mode.rot;
+        const r0 = pupilR * 1.08 * breathe;
+        const r1 = (pupilR + (outerR - pupilR) * sp.len) * breathe;
+        let alpha = 0.3 + 0.48 * (0.5 + 0.5 * Math.sin(time * sp.tw + sp.ph));
+        if (sp.flare) {
+          const f = Math.sin(time * mode.pulse + sp.ph);
+          if (f > 0.88) alpha += 0.5 * (f - 0.88) / 0.12;
+        }
+        ctx.strokeStyle = ok(c, Math.min(1, alpha).toFixed(3));
+        ctx.lineWidth = sp.w;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0);
+        ctx.lineTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
+        ctx.stroke();
+      });
+
+      // the pupil, dark, with a small fixed catch-light so it reads as looking
+      // at something rather than a plain disc
+      ctx.beginPath();
+      ctx.arc(cx, cy, pupilR * breathe, 0, Math.PI * 2);
+      ctx.fillStyle = getComputedStyle(hudEl).getPropertyValue('--ground').trim() || '#04070a';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(cx - pupilR * 0.32, cy - pupilR * 0.32, pupilR * 0.22, 0, Math.PI * 2);
+      ctx.fillStyle = ok(c, 0.55);
+      ctx.fill();
+
+      if (!reduce) requestAnimationFrame(frame);
+    };
+    if (reduce) frame(0); else requestAnimationFrame(frame);
+  }
 
   const head = (title, meta, status, tag = 'h2') => `
     <div class="tile-head">
@@ -115,7 +234,7 @@
   const AGENT = { ready: 'go', queued: 'warn', at_capacity: 'warn', blocked: 'warn' };
 
   const render = d => {
-    $('#hud-stats').innerHTML = STATS.map(s => {
+    const statTile = s => {
       const v = s.value(d);
       return `<a class="tile tile--lifted ${s.accent}" href="${s.to}"
         aria-label="${esc(s.title)}: ${esc(v)}. ${esc(s.sub(d))}. Opens ${esc(s.goes)}.">
@@ -125,7 +244,17 @@
           <div class="stat-sub">${esc(s.sub(d))}</div>
           <div class="stat-go" aria-hidden="true">${esc(s.goes)} &rsaquo;</div>
         </div></a>`;
-    }).join('');
+    };
+    $('#hud-stats-l').innerHTML = STATS.slice(0, 2).map(statTile).join('');
+    $('#hud-stats-r').innerHTML = STATS.slice(2).map(statTile).join('');
+
+    // The eye's only "aliveness" that isn't decoration: it reflects whether a
+    // job is actually running right now, or something is actually waiting on
+    // you. Idle is idle -- it does not perform activity that isn't happening.
+    const running = (d.hist?.runs || []).some(r => r.status === 'running');
+    const waitingNow = (d.vent?.metrics?.approvals ?? 0) + (d.notif?.unread ?? 0);
+    const eye = $('#nova-eye');
+    if (eye) eye.dataset.mode = running ? 'active' : waitingNow ? 'needs' : 'idle';
 
     const faults = d.hist?.stats?.faults ?? 0;
     const waiting = (d.vent?.metrics?.approvals ?? 0) + (d.notif?.unread ?? 0);
